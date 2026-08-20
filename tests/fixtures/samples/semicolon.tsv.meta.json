@@ -1,0 +1,23 @@
+{
+  "name": "semicolon.tsv",
+  "encoding": "utf-8",
+  "delimiter": "semicolon",
+  "headerRows": 3,
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz"
+  ],
+  "rowCount": 300,
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "decimalSeparator": ".",
+  "notes": "文件名为 .tsv 但实际分隔符为分号（模拟命名与内容不一致的真实文件）"
+}

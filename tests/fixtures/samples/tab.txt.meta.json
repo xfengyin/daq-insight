@@ -1,0 +1,23 @@
+{
+  "name": "tab.txt",
+  "encoding": "utf-8",
+  "delimiter": "tab",
+  "headerRows": 3,
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz"
+  ],
+  "rowCount": 300,
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "decimalSeparator": ".",
+  "notes": "制表符分隔，扩展名为 .txt（模拟扩展名与内容不符）"
+}

@@ -1,0 +1,35 @@
+{
+  "name": "gbk_sample.csv",
+  "encoding": "gbk",
+  "delimiter": "comma",
+  "headerRows": 1,
+  "preambleLines": 0,
+  "layout": "long",
+  "channelCount": 9,
+  "channelTypes": [
+    "DCV",
+    "DCV",
+    "DCV",
+    "DCV",
+    "DCV",
+    "DCV",
+    "DCV",
+    "DCV",
+    "DCV"
+  ],
+  "units": [
+    "V",
+    "V",
+    "V",
+    "V",
+    "V",
+    "V",
+    "V",
+    "V",
+    "V"
+  ],
+  "rowCount": 50,
+  "timestampFormat": null,
+  "decimalSeparator": ".",
+  "notes": "GBK 编码（非 UTF-8），单行中文表头 通道,读数,单位；长格式（每行一个通道读数），通道号循环 CH101-CH109（9 个唯一通道），共 50 行数据，无时间戳列"
+}

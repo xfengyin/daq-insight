@@ -1,0 +1,27 @@
+{
+  "name": "english_header.csv",
+  "encoding": "utf-8",
+  "delimiter": "comma",
+  "headerRows": 1,
+  "layout": "wide",
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz"
+  ],
+  "rowCount": 300,
+  "timestampFormat": "MM/DD/YYYY + HH:mm:ss.SSS（Date/Time 分列，均引号包裹）",
+  "decimalSeparator": ".",
+  "headerQuoted": true,
+  "headerEmbedsTypes": true,
+  "headerHasEmbeddedComma": true,
+  "notes": "格式2（前面板 USB 导出）：表头整行双引号包裹，列名内嵌类型；Date/Time 分列且引号包裹；Ch102 (TC,K) 与 Ch103 (RTD,PT100) 含引号内嵌入逗号（需按 CSV 引号规则解析，朴素逗号切分表头得 8 段）"
+}

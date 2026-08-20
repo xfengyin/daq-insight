@@ -1,0 +1,23 @@
+{
+  "name": "euro_decimal.csv",
+  "encoding": "utf-8",
+  "delimiter": "semicolon",
+  "headerRows": 3,
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz"
+  ],
+  "rowCount": 100,
+  "timestampFormat": "DD.MM.YYYY HH:mm:ss",
+  "decimalSeparator": ",",
+  "notes": "欧式格式：小数点为逗号，分号分隔，日期 DD.MM.YYYY"
+}

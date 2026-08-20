@@ -1,0 +1,25 @@
+{
+  "name": "read_query.csv",
+  "encoding": "utf-8",
+  "delimiter": "comma",
+  "headerRows": 0,
+  "layout": "wide",
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz"
+  ],
+  "rowCount": 300,
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "decimalSeparator": ".",
+  "scientific": true,
+  "notes": "格式3（READ? 转储）：无表头，固定列序（时间戳+各通道），科学计数法带前导 + 号（如 +1.23456789E+00）"
+}

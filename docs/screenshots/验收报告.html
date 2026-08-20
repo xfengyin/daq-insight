@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>DAQ Insight 验收报告</title>
+<style>
+  body { font-family: 'PingFang SC','Microsoft YaHei',sans-serif; background:#f0f2f5; margin:0; padding:32px 16px; color:#1f2329; }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1 { color:#2f54eb; font-size:28px; margin: 0 0 8px; }
+  .sub { color:#4e5969; margin-bottom: 24px; }
+  .meta { background:#fff; border-radius:8px; padding:16px 20px; margin-bottom: 24px; box-shadow:0 1px 3px rgba(0,0,0,.08); font-size:14px; }
+  .meta b { color:#2f54eb; }
+  .shot { background:#fff; border-radius:8px; padding:20px; margin-bottom:24px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .shot h2 { font-size:18px; margin:0 0 4px; color:#1f2329; }
+  .shot p { color:#86909c; font-size:13px; margin:0 0 12px; }
+  .shot img { width:100%; border:1px solid #e5e6eb; border-radius:4px; display:block; }
+  .ok { display:inline-block; background:#e8ffea; color:#00b42a; border-radius:4px; padding:2px 8px; font-size:12px; margin-left:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>DAQ Insight 验收报告</h1>
+  <div class="sub">DAQ970A 数据采集仪智能处理工具 · Electron + React + TypeScript · 中文界面</div>
+  <div class="meta">
+    <b>验收基线</b>：全量测试 160/160 全绿 · typecheck 0 错误 · 三端构建成功<br>
+    <b>冒烟流程</b>：启动 → 导入 sample → 格式检测 → 通道识别 → 数据预览 → 波形图 → 统计分析 → 清洗 → 导出（CSV/Excel/PNG）
+  </div>
+
+  <div class="shot">
+    <h2>① 启动与文件导入页<span class="ok">实测截图</span></h2>
+    <p>顶部标题栏 + 左侧导航（文件导入/通道与预览/波形/分析/导出）+ 拖拽导入区</p>
+    <img src="01-启动导入页.png" alt="启动导入页">
+  </div>
+
+  <div class="shot">
+    <h2>② 波形分析页（大数据量）<span class="ok">实测截图</span></h2>
+    <p>ECharts 时域波形：dataZoom 缩放平移 + tooltip 悬停 + 图例 + 多通道叠加</p>
+    <img src="05-大数据量波形.png" alt="大数据量波形">
+  </div>
+
+  <div class="shot">
+    <h2>③ 多通道叠加/分屏（冒烟自动流程）<span class="ok">实测截图</span></h2>
+    <p>20000 行 × 5 通道数据流畅渲染（lttb 降采样）</p>
+    <img src="02-波形分析页.png" alt="波形分析页">
+  </div>
+
+  <div class="shot">
+    <h2>④ 通道类型人工校正（IT4 迭代成果）<span class="ok">实测截图</span></h2>
+    <p>长格式 degC 通道显示黄色"⚠ 待确认"标签（TC/RTD 无法自动区分），用户可下拉校正类型</p>
+    <img src="04-类型校正待确认.png" alt="类型校正待确认">
+  </div>
+
+  <div class="shot">
+    <h2>⑤ 分析/导出页面<span class="ok">实测截图</span></h2>
+    <p>统计面板 + 数据质量概览 + 导出对话框（CSV/Excel/PNG/HTML）</p>
+    <img src="03-最终页面.png" alt="分析导出页面">
+  </div>
+</div>
+</body>
+</html>

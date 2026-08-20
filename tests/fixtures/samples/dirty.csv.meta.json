@@ -1,0 +1,29 @@
+{
+  "name": "dirty.csv",
+  "encoding": "utf-8",
+  "delimiter": "comma",
+  "headerRows": 3,
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz"
+  ],
+  "rowCount": 120,
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "decimalSeparator": ".",
+  "issues": [
+    "重复时间戳 3 处（第 10/11、40/41/42 行组）",
+    "空字段 6 处（第 5/15/25/55/75 行）",
+    "参差行 1 处（第 65 行仅 4 列）",
+    "字段首尾空白（第 85 行 CH102 前导空格）"
+  ],
+  "notes": "脏数据样本：重复时间戳、空字段、参差行、字段空白，用于清洗模块测试"
+}

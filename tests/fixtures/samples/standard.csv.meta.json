@@ -1,0 +1,26 @@
+{
+  "name": "standard.csv",
+  "encoding": "utf-8",
+  "delimiter": "comma",
+  "headerRows": 1,
+  "preambleLines": 2,
+  "layout": "long",
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "VDC",
+    "degC",
+    "degC",
+    "HZ"
+  ],
+  "rowCount": 300,
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "decimalSeparator": ".",
+  "scientific": true,
+  "notes": "格式1（BenchVue 导出）：2 行引号元信息（设备行/日志行）+ 表头 Channel,Reading,Unit,Timestamp；长格式（每通道一行），科学计数法；4 通道 × 75 扫描，同扫描各行共享时间戳"
+}

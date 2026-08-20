@@ -1,0 +1,25 @@
+{
+  "name": "scan_format.csv",
+  "encoding": "utf-8",
+  "delimiter": "comma",
+  "headerRows": 1,
+  "layout": "scan",
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz"
+  ],
+  "rowCount": 200,
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "decimalSeparator": ".",
+  "headerQuoted": true,
+  "notes": "格式4（BenchVue 表格视图）：首列扫描序号（无引号），时间戳列引号包裹，数值普通小数"
+}

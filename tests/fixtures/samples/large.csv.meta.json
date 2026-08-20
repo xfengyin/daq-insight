@@ -1,0 +1,25 @@
+{
+  "name": "large.csv",
+  "encoding": "utf-8",
+  "delimiter": "comma",
+  "headerRows": 3,
+  "channelCount": 5,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ",
+    "ACV"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz",
+    "V"
+  ],
+  "rowCount": 20000,
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "decimalSeparator": ".",
+  "notes": "大样本：5 通道 × 20000 行，用于性能验证"
+}

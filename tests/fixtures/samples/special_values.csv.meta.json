@@ -1,0 +1,25 @@
+{
+  "name": "special_values.csv",
+  "encoding": "utf-8",
+  "delimiter": "comma",
+  "headerRows": 3,
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz"
+  ],
+  "rowCount": 60,
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "decimalSeparator": ".",
+  "issues": [
+    "包含特殊值 OVER(超量程)/UNDER(欠量程)/OPEN(开路)/SHORT(短路)/+9.90000000E+37(超量程数值)/\"Sensor Error\"(引号包裹错误)/空白未读字段"
+  ]
+}

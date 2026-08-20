@@ -1,0 +1,23 @@
+{
+  "name": "no_header.csv",
+  "encoding": "utf-8",
+  "delimiter": "comma",
+  "headerRows": 0,
+  "channelCount": 4,
+  "channelTypes": [
+    "DCV",
+    "TC Type K",
+    "RTD PT100",
+    "FREQ"
+  ],
+  "units": [
+    "V",
+    "degC",
+    "degC",
+    "Hz"
+  ],
+  "rowCount": 100,
+  "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS",
+  "decimalSeparator": ".",
+  "notes": "无表头，首行即数据（无法从表头推断类型，需按数值特征识别）"
+}
