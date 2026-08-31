@@ -9,7 +9,18 @@ name: Build Windows Installer
   workflow_dispatch:
 
 jobs:
+  # Gitea only evaluates a job-level `if` for jobs with `needs`. This no-op job
+  # (no action downloads) gives build-win a dependency so the `if` below is
+  # actually evaluated on Gitea: build-win is skipped there, runs on GitHub.
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: No-op preflight
+        run: echo "preflight ok"
+
   build-win:
+    needs: preflight
     # Gitea has no windows runner: this job only runs on GitHub
     if: github.server_url == 'https://github.com'
     runs-on: windows-latest
