@@ -10,6 +10,8 @@ name: Build Windows Installer
 
 jobs:
   build-win:
+    # Gitea has no windows runner: this job only runs on GitHub
+    if: github.server_url == 'https://github.com'
     runs-on: windows-latest
     steps:
       - name: Checkout
