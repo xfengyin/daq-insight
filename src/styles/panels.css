@@ -1,0 +1,308 @@
+/* ---- 检测面板 ---- */
+.detection-panel {
+  margin-top: 18px;
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.panel-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.panel-title-row h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.muted {
+  color: #86909c;
+  font-size: 12px;
+}
+
+.result-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.result-card {
+  background: #f7f8fa;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.result-label {
+  font-size: 11px;
+  color: #86909c;
+}
+
+.result-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.conf {
+  font-size: 11px;
+}
+
+.conf-high {
+  color: #1a7f37;
+}
+
+.conf-mid {
+  color: #b25e09;
+}
+
+.conf-low {
+  color: #c62828;
+}
+
+.detect-notes {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #4e5969;
+}
+
+.detect-notes li {
+  margin: 2px 0;
+}
+
+.correction-box {
+  margin-top: 14px;
+  border-top: 1px solid #f0f1f3;
+  padding-top: 12px;
+}
+
+.correction-box h4 {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+
+.correction-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.field-label {
+  color: #4e5969;
+  font-size: 12px;
+}
+
+.field select,
+.field input[type='number'] {
+  padding: 6px 8px;
+  border: 1px solid #c9cdd4;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.radio-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.radio-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+/* ---- 原始预览 ---- */
+.raw-preview {
+  margin-top: 14px;
+}
+
+.raw-preview h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+
+.raw-pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: 'JetBrains Mono', Consolas, Menlo, monospace;
+  font-size: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  line-height: 1.6;
+  white-space: pre;
+  margin: 0;
+}
+
+.panel-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+}
+
+/* ---- 解析摘要 ---- */
+.parse-summary {
+  margin-top: 18px;
+  background: #eef7ee;
+  border: 1px solid #b7e1b7;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+}
+
+.parse-summary h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #1a7f37;
+}
+
+.parse-summary pre {
+  margin: 0;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ---- 统计面板 ---- */
+.stats-panel {
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.quality-cards {
+  margin-top: 0;
+}
+
+.stats-table {
+  margin-bottom: 4px;
+}
+
+.clean-box {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  background: #f7f8fa;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.clean-box .field {
+  min-width: 150px;
+}
+
+.check-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.check-hint {
+  font-size: 12px;
+  color: #86909c;
+}
+
+.clean-hint {
+  font-size: 12px;
+  align-self: center;
+}
+
+/* ---- 导出对话框 ---- */
+.export-dialog {
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.export-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid #f0f1f3;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 6px;
+}
+
+.path-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.path-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #c9cdd4;
+  border-radius: 6px;
+  font-size: 13px;
+  min-width: 240px;
+}
+
+.path-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #86909c;
+  font-family: 'JetBrains Mono', Consolas, Menlo, monospace;
+}
+
+.export-done {
+  margin-top: 14px;
+  border-top: 1px solid #f0f1f3;
+  padding-top: 10px;
+}
+
+.export-done h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.done-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+.done-kind {
+  background: #e8f0fe;
+  color: #2f54eb;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.done-path {
+  color: #4e5969;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+.done-size {
+  color: #86909c;
+  margin-left: auto;
+  font-family: 'JetBrains Mono', Consolas, Menlo, monospace;
+}
