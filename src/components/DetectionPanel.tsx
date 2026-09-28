@@ -5,6 +5,7 @@
  */
 import { useMemo, useState } from 'react'
 import type { DetectionResult, LayoutType, RawFile } from '../../core/models'
+import { ResultCard, ResultCards } from './common/ResultCard'
 
 interface DetectionPanelProps {
   /** 检测结果（来自 daqAPI.detectFile） */
@@ -89,35 +90,14 @@ export default function DetectionPanel({ detection, busy, onApply, onNext }: Det
       </div>
 
       {/* 检测结果卡片 */}
-      <div className="result-cards">
-        <div className="result-card">
-          <span className="result-label">编码</span>
-          <span className="result-value">{raw.encoding}</span>
-          <span className={'conf ' + encConf.cls}>置信度 {encConf.text}</span>
-        </div>
-        <div className="result-card">
-          <span className="result-label">分隔符</span>
-          <span className="result-value">{DELIM_LABEL[raw.delimiter] ?? raw.delimiter}</span>
-          <span className={'conf ' + delimConf.cls}>置信度 {delimConf.text}</span>
-        </div>
-        <div className="result-card">
-          <span className="result-label">表头行数</span>
-          <span className="result-value">{raw.headerRows} 行</span>
-          <span className={'conf ' + headerConf.cls}>置信度 {headerConf.text}</span>
-        </div>
-        <div className="result-card">
-          <span className="result-label">小数点</span>
-          <span className="result-value">{raw.decimal === ',' ? '逗号 (,)' : '点 (.)'}</span>
-        </div>
-        <div className="result-card">
-          <span className="result-label">布局</span>
-          <span className="result-value">{LAYOUT_LABEL[raw.layout ?? 'wide'] ?? raw.layout ?? '宽表'}</span>
-        </div>
-        <div className="result-card">
-          <span className="result-label">元信息行</span>
-          <span className="result-value">{raw.preambleLines ?? 0} 行</span>
-        </div>
-      </div>
+      <ResultCards>
+        <ResultCard label="编码" value={raw.encoding} badge={<span className={'conf ' + encConf.cls}>置信度 {encConf.text}</span>} />
+        <ResultCard label="分隔符" value={DELIM_LABEL[raw.delimiter] ?? raw.delimiter} badge={<span className={'conf ' + delimConf.cls}>置信度 {delimConf.text}</span>} />
+        <ResultCard label="表头行数" value={raw.headerRows + ' 行'} badge={<span className={'conf ' + headerConf.cls}>置信度 {headerConf.text}</span>} />
+        <ResultCard label="小数点" value={raw.decimal === ',' ? '逗号 (,)' : '点 (.)'} />
+        <ResultCard label="布局" value={LAYOUT_LABEL[raw.layout ?? 'wide'] ?? raw.layout ?? '宽表'} />
+        <ResultCard label="元信息行" value={(raw.preambleLines ?? 0) + ' 行'} />
+      </ResultCards>
 
       {detection.notes.length > 0 && (
         <ul className="detect-notes">

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import type { StandardizedData } from '../../core/models'
 import type { AnalysisResult } from '../../core/analysis/engine'
 import type { CleanOptions } from '../../core/cleaning/cleaner'
+import { ResultCard, ResultCards } from './common/ResultCard'
 
 
 interface StatsPanelProps {
@@ -77,24 +78,12 @@ export default function StatsPanel({ data, onCleaned, onNotify }: StatsPanelProp
   return (
     <div className="stats-panel">
       {/* 数据质量概览 */}
-      <div className="result-cards quality-cards">
-        <div className="result-card">
-          <span className="result-label">总行数</span>
-          <span className="result-value">{rows}</span>
-        </div>
-        <div className="result-card">
-          <span className="result-label">时间跨度</span>
-          <span className="result-value">{durationMs > 0 ? (durationMs / 1000).toFixed(1) + ' s' : '—'}</span>
-        </div>
-        <div className="result-card">
-          <span className="result-label">采样率</span>
-          <span className="result-value">{sampleRate > 0 ? sampleRate.toFixed(1) + ' Hz' : '—'}</span>
-        </div>
-        <div className="result-card">
-          <span className="result-label">通道数</span>
-          <span className="result-value">{data.channels.length}</span>
-        </div>
-      </div>
+      <ResultCards className="quality-cards">
+        <ResultCard label="总行数" value={rows} />
+        <ResultCard label="时间跨度" value={durationMs > 0 ? (durationMs / 1000).toFixed(1) + ' s' : '—'} />
+        <ResultCard label="采样率" value={sampleRate > 0 ? sampleRate.toFixed(1) + ' Hz' : '—'} />
+        <ResultCard label="通道数" value={data.channels.length} />
+      </ResultCards>
 
       {/* 逐通道统计表 */}
       <h3 className="section-title">逐通道统计</h3>
