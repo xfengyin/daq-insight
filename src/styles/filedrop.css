@@ -1,51 +1,62 @@
-/* ---- 文件导入区 ---- */
+/**
+ * filedrop.css — 文件导入区（拖拽目标 + 已选文件摘要）
+ */
 .filedrop {
-  border: 2px dashed #c9cdd4;
-  border-radius: 12px;
-  background: #fff;
-  padding: 44px 24px;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  padding: var(--space-7) var(--space-5);
   text-align: center;
   transition:
-    border-color 0.15s,
-    background 0.15s;
+    border-color var(--ease),
+    background-color var(--ease);
+}
+
+.filedrop:hover {
+  border-color: var(--gray-400);
 }
 
 .filedrop.dragging {
-  border-color: #2f54eb;
-  background: #eef4ff;
+  border-color: var(--brand-500);
+  border-style: solid;
+  background: var(--brand-25);
 }
 
 .filedrop-icon {
-  font-size: 34px;
+  font-size: 32px;
 }
 
 .filedrop-hint {
   font-size: 15px;
-  color: #1f2329;
-  margin: 10px 0 4px;
+  font-weight: var(--weight-medium);
+  color: var(--text-1);
+  margin: var(--space-3) 0 var(--space-1);
 }
 
 .filedrop-sub {
-  font-size: 12px;
-  color: #86909c;
-  margin: 0 0 16px;
+  font-size: var(--text-xs);
+  color: var(--text-3);
+  margin: 0 0 var(--space-4);
 }
 
 .filedrop-file {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   display: inline-flex;
   gap: 10px;
   align-items: center;
-  background: #f2f3f5;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
   padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
 }
 
 .filedrop-filename {
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .filedrop-filesize {
-  color: #86909c;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
 }

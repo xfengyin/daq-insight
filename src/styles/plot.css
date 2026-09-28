@@ -1,45 +1,62 @@
-/* ---- 波形页 ---- */
+/**
+ * plot.css — 波形页：工具栏（模式切换 / 通道选择 / 快捷按钮）、
+ * 图容器、分屏栅格、状态栏
+ */
 .plot-view {
-  background: #fff;
-  border: 1px solid #e5e6eb;
-  border-radius: 10px;
-  padding: 12px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  padding: var(--space-3) 14px;
 }
 
+/* ---- 工具栏 ---- */
 .plot-toolbar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
   margin-bottom: 10px;
 }
 
+/* 分段控件：波形 / 叠加 / 分屏 */
 .mode-switch {
   display: inline-flex;
-  border: 1px solid #c9cdd4;
-  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
   overflow: hidden;
+  box-shadow: var(--shadow-xs);
 }
 
 .mode-btn {
   padding: 6px 14px;
   border: none;
-  background: #fff;
-  font-size: 13px;
+  background: var(--bg-surface);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   cursor: pointer;
-  color: #4e5969;
+  color: var(--text-2);
+  transition:
+    background-color var(--ease),
+    color var(--ease);
 }
 
 .mode-btn + .mode-btn {
-  border-left: 1px solid #c9cdd4;
+  border-left: 1px solid var(--border);
+}
+
+.mode-btn:hover:not(.active) {
+  background: var(--gray-100);
+  color: var(--text-1);
 }
 
 .mode-btn.active {
-  background: #2f54eb;
-  color: #fff;
-  font-weight: 600;
+  background: var(--brand-600);
+  color: #ffffff;
+  font-weight: var(--weight-semibold);
 }
 
+/* ---- 通道多选下拉 ---- */
 .ch-select {
   position: relative;
 }
@@ -49,11 +66,11 @@
   top: 34px;
   left: 0;
   z-index: 30;
-  background: #fff;
-  border: 1px solid #e5e6eb;
-  border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  padding: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-1);
   min-width: 200px;
   max-height: 280px;
   overflow-y: auto;
@@ -63,33 +80,35 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 8px;
-  border-radius: 6px;
+  padding: 6px var(--space-2);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--text-sm);
+  transition: background-color var(--ease);
 }
 
 .ch-option:hover {
-  background: #f2f3f5;
+  background: var(--gray-100);
 }
 
 .ch-option em {
   font-style: normal;
-  color: #86909c;
+  color: var(--text-3);
   font-size: 11px;
   margin-left: auto;
 }
 
 .quick-btns {
   display: inline-flex;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .plot-loading {
-  color: #86909c;
-  font-size: 12px;
+  color: var(--text-3);
+  font-size: var(--text-xs);
 }
 
+/* ---- 图容器 ---- */
 .plot-widget {
   position: relative;
 }
@@ -100,44 +119,57 @@
   right: 8px;
   z-index: 10;
   padding: 3px 10px;
-  border-radius: 6px;
-  border: 1px solid #c9cdd4;
-  background: rgba(255, 255, 255, 0.9);
-  font-size: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: rgb(255 255 255 / 0.92);
+  font-size: var(--text-xs);
   cursor: pointer;
-  color: #4e5969;
+  color: var(--text-2);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color var(--ease),
+    color var(--ease);
 }
 
 .plot-reset:hover {
-  color: #2f54eb;
-  border-color: #2f54eb;
+  color: var(--brand-600);
+  border-color: var(--brand-500);
 }
 
+/* ---- 分屏栅格 ---- */
 .plot-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
 }
 
+@media (max-width: 520px) {
+  .plot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- 状态栏 ---- */
 .plot-statusbar {
   margin-top: 10px;
-  padding: 8px 12px;
-  background: #f7f8fa;
-  border-radius: 8px;
-  font-size: 12px;
-  color: #1f2329;
+  padding: 8px var(--space-3);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  color: var(--text-1);
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-family: 'JetBrains Mono', Consolas, Menlo, monospace;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
 }
 
 .status-sep {
-  color: #c9cdd4;
-  margin: 0 4px;
+  color: var(--border-strong);
+  margin: 0 var(--space-1);
 }
 
 .status-right {
   margin-left: auto;
-  color: #86909c;
+  color: var(--text-3);
 }

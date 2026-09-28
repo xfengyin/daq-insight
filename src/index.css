@@ -1,4 +1,5 @@
-/* DAQ Insight 渲染进程样式入口：按层拆分到 styles/（base -> layout -> 组件） */
+/* DAQ Insight 渲染进程样式入口：tokens -> base -> layout -> 组件 */
+@import './styles/tokens.css';
 @import './styles/base.css';
 @import './styles/layout.css';
 @import './styles/filedrop.css';

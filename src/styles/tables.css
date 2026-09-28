@@ -1,38 +1,49 @@
-/* ---- 表格 ---- */
+/**
+ * tables.css — 数据表格（通道表 / 预览表 / 统计表）、分页、类型编辑
+ */
+
+/* ---- 表格容器 ---- */
 .table-wrap {
-  background: #fff;
-  border: 1px solid #e5e6eb;
-  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
   overflow: hidden;
 }
 
 .table-wrap table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .table-wrap th,
 .table-wrap td {
-  border-bottom: 1px solid #f0f1f3;
-  padding: 8px 12px;
+  border-bottom: 1px solid var(--gray-100);
+  padding: 8px var(--space-3);
   text-align: left;
   white-space: nowrap;
 }
 
 .table-wrap th {
-  background: #f7f8fa;
-  color: #4e5969;
-  font-weight: 600;
-  font-size: 12px;
+  background: var(--bg-subtle);
+  color: var(--text-2);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-xs);
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--border);
 }
 
 .table-wrap tbody tr:last-child td {
   border-bottom: none;
 }
 
+.table-wrap tbody tr {
+  transition: background-color var(--ease);
+}
+
 .table-wrap tbody tr:hover {
-  background: #f7f9ff;
+  background: var(--gray-50);
 }
 
 .col-check {
@@ -45,62 +56,69 @@
 }
 
 .row-dim {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .row-selected {
-  background: #fbfcff;
+  background: var(--brand-25);
 }
 
+/* ---- 行内编辑控件 ---- */
 .name-input {
   border: 1px solid transparent;
   background: transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 2px 6px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   width: 110px;
-  color: #1f2329;
+  color: var(--text-1);
+  transition:
+    border-color var(--ease),
+    background-color var(--ease),
+    box-shadow var(--ease);
 }
 
 .name-input:hover,
 .name-input:focus {
-  border-color: #c9cdd4;
-  background: #fff;
+  border-color: var(--border-strong);
+  background: var(--bg-surface);
 }
 
 .name-input:focus {
   outline: none;
-  border-color: #2f54eb;
+  border-color: var(--brand-500);
+  box-shadow: var(--focus-ring);
 }
 
 .th-unit {
-  color: #86909c;
-  font-weight: 400;
+  color: var(--text-3);
+  font-weight: var(--weight-regular);
 }
 
+/* ---- 单元格类型 ---- */
 .time-cell {
-  font-family: 'JetBrains Mono', Consolas, Menlo, monospace;
-  font-size: 12px;
-  color: #4e5969;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-2);
 }
 
 .cell-num {
-  font-family: 'JetBrains Mono', Consolas, Menlo, monospace;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   text-align: right;
 }
 
 .cell-nan {
-  font-family: 'JetBrains Mono', Consolas, Menlo, monospace;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   text-align: right;
-  color: #b6bcc4;
+  color: var(--gray-400);
 }
 
 .empty-cell {
   text-align: center;
-  color: #86909c;
-  padding: 24px !important;
+  color: var(--text-3);
+  padding: var(--space-5) !important;
 }
 
 /* ---- 分页 ---- */
@@ -109,19 +127,20 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  border-top: 1px solid #f0f1f3;
+  border-top: 1px solid var(--gray-100);
 }
 
 .page-info {
-  font-size: 13px;
-  color: #4e5969;
+  font-size: var(--text-sm);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
 }
 
 .preview-meta {
   padding: 8px 14px;
-  border-bottom: 1px solid #f0f1f3;
-  font-size: 12px;
-  color: #86909c;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: var(--text-xs);
+  color: var(--text-3);
 }
 
 /* ---- 预览表纵向滚动（前 1000 行分页场景） ---- */
@@ -134,6 +153,12 @@
   min-width: 100%;
 }
 
+.data-preview thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
 /* ---- IT4 类型编辑 ---- */
 .type-cell {
   display: flex;
@@ -144,39 +169,45 @@
 .type-select {
   border: 1px solid transparent;
   background: transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 2px 4px;
-  font-size: 13px;
-  color: #1f2329;
+  font-size: var(--text-sm);
+  color: var(--text-1);
   cursor: pointer;
+  transition:
+    border-color var(--ease),
+    background-color var(--ease),
+    box-shadow var(--ease);
 }
 
 .type-select:hover,
 .type-select:focus {
-  border-color: #c9cdd4;
-  background: #fff;
+  border-color: var(--border-strong);
+  background: var(--bg-surface);
 }
 
 .type-select:focus {
   outline: none;
-  border-color: #2f54eb;
+  border-color: var(--brand-500);
+  box-shadow: var(--focus-ring);
 }
 
 .type-uncertain {
-  border-color: #faad14;
-  background: #fffbe6;
-  color: #874d00;
-  font-weight: 600;
+  border-color: var(--warning-300);
+  background: var(--warning-50);
+  color: var(--warning-700);
+  font-weight: var(--weight-semibold);
 }
 
 .uncertain-tag {
   display: inline-block;
-  background: #fff7e6;
-  border: 1px solid #ffd591;
-  color: #b25e09;
-  border-radius: 4px;
+  background: var(--warning-50);
+  border: 1px solid var(--warning-200);
+  color: var(--warning-600);
+  border-radius: var(--radius-full);
   font-size: 11px;
-  padding: 1px 6px;
+  font-weight: var(--weight-medium);
+  padding: 1px 8px;
   white-space: nowrap;
   cursor: help;
 }
