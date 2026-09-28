@@ -20,7 +20,7 @@ interface ExportDialogProps {
   onNotify?: (msg: string) => void
 }
 
-export interface ExportDone {
+interface ExportDone {
   kind: string
   path: string
   bytes: number

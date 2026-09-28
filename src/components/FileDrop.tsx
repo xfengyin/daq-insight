@@ -4,6 +4,7 @@
  * 拖入/选择后回调 onFile({path,name,size})，由上层自动触发 detectFile。
  */
 import { useState } from 'react'
+import { formatSize } from '../shared/units'
 
 /** 选中的文件信息 */
 export interface PickedFile {
@@ -24,19 +25,6 @@ interface FileDropProps {
   error: string | null
   /** 用户选好文件后回调 */
   onFile: (file: PickedFile) => void
-}
-
-/** 文件大小格式化：B / KB / MB / GB */
-export function formatSize(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes <= 0) return ''
-  const units = ['B', 'KB', 'MB', 'GB']
-  let v = bytes
-  let u = 0
-  while (v >= 1024 && u < units.length - 1) {
-    v /= 1024
-    u++
-  }
-  return v.toFixed(u === 0 ? 0 : 1) + ' ' + units[u]
 }
 
 /** 从拖拽的 File 列表中解析真实路径（Electron 33：File.path 已移除，走 webUtils） */

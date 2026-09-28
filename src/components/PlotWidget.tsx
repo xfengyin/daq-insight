@@ -40,7 +40,7 @@ use([
 ])
 
 /** 12 色色板（多通道颜色区分） */
-export const PALETTE = [
+const PALETTE = [
   '#2f54eb', '#fa8c16', '#52c41a', '#eb2f96', '#13c2c2', '#722ed1',
   '#a0d911', '#f5222d', '#faad14', '#1677ff', '#95de64', '#ff7a45'
 ]
@@ -70,8 +70,6 @@ interface PlotWidgetProps {
   onHover?: (info: HoverInfo | null) => void
   /** 注册实例（分屏联动/冒烟检查用） */
   onInstance?: (chart: ECharts | null) => void
-  /** 渲染完成回调（冒烟计时用） */
-  onRender?: () => void
   /** 还原缩放按钮点击 */
   onResetZoom?: () => void
 }
@@ -156,7 +154,7 @@ function axisTooltip(params: unknown): string {
   return '<b style="font-size:12px">' + time + '</b><br/>' + lines.join('<br/>')
 }
 
-export default function PlotWidget({ series, height = 320, variant = 'overlay', showLegend = true, onHover, onInstance, onRender, onResetZoom }: PlotWidgetProps) {
+export default function PlotWidget({ series, height = 320, variant = 'overlay', showLegend = true, onHover, onInstance, onResetZoom }: PlotWidgetProps) {
   const divRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<ECharts | null>(null)
 
@@ -199,7 +197,6 @@ export default function PlotWidget({ series, height = 320, variant = 'overlay', 
     const chart = chartRef.current
     if (!chart) return
     chart.setOption(buildOption(series, variant, height, showLegend), { notMerge: true })
-    onRender?.()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [series, variant, height, showLegend])
 
@@ -214,5 +211,3 @@ export default function PlotWidget({ series, height = 320, variant = 'overlay', 
     </div>
   )
 }
-
-export { seriesName }

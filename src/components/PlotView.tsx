@@ -35,15 +35,11 @@ interface PlotViewProps {
   onToggle: (index: number) => void
   /** 全部/部分显示 */
   onToggleAll: (checked: boolean) => void
-  /** 渲染完成（冒烟计时） */
-  onRender?: () => void
-  /** 主图表实例回传（PNG 导出用；分屏模式回传 null） */
-  onChartRef?: (chart: unknown | null) => void
   /** 波形 PNG dataURL 快照回传（图表导出用，图表卸载后仍可用） */
   onChartDataUrl?: (url: string | null) => void
 }
 
-export default function PlotView({ data, selected, onToggle, onToggleAll, onRender, onChartRef, onChartDataUrl }: PlotViewProps) {
+export default function PlotView({ data, selected, onToggle, onToggleAll, onChartDataUrl }: PlotViewProps) {
   const [mode, setMode] = useState<PlotMode>('overlay')
   const [series, setSeries] = useState<ChartSeries[]>([])
   const [loading, setLoading] = useState(false)
@@ -184,12 +180,8 @@ export default function PlotView({ data, selected, onToggle, onToggleAll, onRend
                   onHover={setHover}
                   onInstance={(c) => {
                     registerInstance(c)
-                    if (c) {
-                      onChartRef?.(c)
-                      lastChart.current = c
-                    }
+                    if (c) lastChart.current = c
                   }}
-                  onRender={onRender}
                   onResetZoom={resetZoomAll}
                 />
               ))}
@@ -201,12 +193,8 @@ export default function PlotView({ data, selected, onToggle, onToggleAll, onRend
               variant={mode === 'stack' ? 'stack' : 'overlay'}
               showLegend={true}
               onHover={setHover}
-              onRender={onRender}
               onInstance={(c) => {
-                if (c) {
-                  onChartRef?.(c)
-                  lastChart.current = c
-                }
+                if (c) lastChart.current = c
               }}
               onResetZoom={resetZoomAll}
             />

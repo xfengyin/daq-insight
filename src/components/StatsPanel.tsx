@@ -185,5 +185,3 @@ export default function StatsPanel({ data, onCleaned, onNotify }: StatsPanelProp
     </div>
   )
 }
-
-export { fmt }
