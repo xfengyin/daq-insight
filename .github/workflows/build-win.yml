@@ -14,7 +14,7 @@ jobs:
   # actually evaluated on Gitea: build-win is skipped there, runs on GitHub.
   preflight:
     name: Preflight
-    runs-on: amd64
+    runs-on: ${{ github.server_url == 'https://github.com' && 'ubuntu-latest' || 'amd64' }}
     steps:
       - name: No-op preflight
         run: echo "preflight ok"
