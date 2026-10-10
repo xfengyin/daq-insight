@@ -78,7 +78,15 @@ npx electron-builder --win --dir    # Windows 目标解包目录（Linux 上需 
 
 ## 持续集成（CI）
 
-.github/workflows/build-win.yml 提供 Windows 安装包自动构建（GitHub Actions）：
+工作流文件在 [.gitea/workflows/build-win.yml](.gitea/workflows/build-win.yml)。
+
+> ⚠️ **现状说明（重要）**：这个 Windows 打包 job 目前**跑不起来**，不是配置问题而是拓扑问题：
+> 它带 `if: github.server_url == 'https://github.com'` 且 `runs-on: windows-latest`，
+> 只能在 GitHub 上执行；而本仓库的 GitHub 端只是 Gitea 的**只读镜像，Actions 已整体关闭**，
+> 并且 Gitea 侧没有 Windows runner。所以「推送即自动出安装包」这条路径现在是断的。
+> 需要 Windows 安装包时，请在 Windows 上手动执行 `npm run build:win`（产物在 `dist/`）。
+
+以下流程为该工作流的**设计说明**（供将来启用时参考）：
 
 - 触发：推送 main / `v*` 标签 / 手动触发（workflow_dispatch）；
 - 流程：checkout → setup-node 20（npm 缓存）→ 设置 electron 镜像加速 → 缓存 electron-builder → `npm ci` → `npm run build:win` → 上传 NSIS 产物（dist/*.exe、blockmap、latest.yml）；
@@ -115,7 +123,7 @@ daq-insight/
 
 ## 已知限制
 
-- **打包**：Linux 上交叉打包 Windows 目标需要 wine（rcedit/签名步骤）；正式发布请在 Windows/CI 执行 `npm run build:win`（CI 见 [.github/workflows/build-win.yml](.github/workflows/build-win.yml)）；未配置签名证书时安装包为未签名（SmartScreen 会提示）；
+- **打包**：Linux 上交叉打包 Windows 目标需要 wine（rcedit/签名步骤）；正式发布请在 Windows 上执行 `npm run build:win`（工作流定义见 [.gitea/workflows/build-win.yml](.gitea/workflows/build-win.yml)，但该 job 限 GitHub，见上文「持续集成」的现状说明）；未配置签名证书时安装包为未签名（SmartScreen 会提示）；
 - **签名**：build.win 已配置证书占位（WIN_CERTIFICATE_FILE / WIN_CERTIFICATE_PASSWORD 环境变量注入，CI 用 CSC_LINK / CSC_KEY_PASSWORD），真实证书不入库（见 [docs/icon.md](docs/icon.md)）；
 - **图标**：docs/icon.ico 为正式图标 v1（多尺寸 16-256），如需更换见 [docs/icon.md](docs/icon.md)；
 - **root 环境**：Linux 下以 root 运行 Electron 需 `ELECTRON_DISABLE_SANDBOX=1`；
