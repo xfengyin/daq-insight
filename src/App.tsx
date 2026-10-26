@@ -5,7 +5,7 @@
  * 流程：拖拽/选择文件 → 自动 detectFile → DetectionPanel 展示与校正 → 重新检测 / 下一步解析。
  * 解析结果存 App 级 state（parsed），供通道表/预览表、图表、分析/导出各页复用。
  *
- * 布局与页面渲染拆至 components/layout 与 pages/；冒烟自检逻辑见 hooks/useSmokeTest。
+ * 布局与页面渲染拆至 components/layout 与 pages/；通知/日志见 hooks/useSmokeLog。
  */
 import { useCallback, useEffect, useState } from 'react'
 import type { DetectionResult, RawFile, StandardizedData } from '../core/models'
@@ -20,7 +20,6 @@ import PlotPage from './pages/PlotPage'
 import AnalysisPage from './pages/AnalysisPage'
 import ExportPage from './pages/ExportPage'
 import { useSmokeLog } from './hooks/useSmokeLog'
-import { useSmokeTest } from './hooks/useSmokeTest'
 
 function App() {
   const [page, setPage] = useState<NavPage>('import')
@@ -156,15 +155,6 @@ function App() {
       }
     })
   }, [])
-
-  /** 冒烟自检（?smoke=1；T9-T12 验收流程自动化） */
-  useSmokeTest({
-    page,
-    parsed,
-    selectedChannels,
-    actions: { setFile, setDetection, setParsed, setSelectedChannels, setParseMs, setPage },
-    logLine
-  })
 
   /** 菜单事件（文件→打开文件 等） */
   useEffect(() => {

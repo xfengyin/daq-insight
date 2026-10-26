@@ -76,22 +76,21 @@ npx electron-builder --dir          # 当前平台解包目录
 npx electron-builder --win --dir    # Windows 目标解包目录（Linux 上需 -c.win.signAndEditExecutable=false 跳过 wine 依赖）
 ```
 
-## 持续集成（CI）
+## 构建与发布（无 CI）
 
-工作流文件在 [.gitea/workflows/build-win.yml](.gitea/workflows/build-win.yml)。
+本仓库**没有 CI**：仓库里不存在 `.github/workflows/` 也不存在 `.gitea/workflows/`，
+推送任何分支或标签都不会触发构建。Windows 安装包只能在 Windows 机器上手工产出：
 
-> ⚠️ **现状说明（重要）**：这个 Windows 打包 job 目前**跑不起来**，不是配置问题而是拓扑问题：
-> 它带 `if: github.server_url == 'https://github.com'` 且 `runs-on: windows-latest`，
-> 只能在 GitHub 上执行；而本仓库的 GitHub 端只是 Gitea 的**只读镜像，Actions 已整体关闭**，
-> 并且 Gitea 侧没有 Windows runner。所以「推送即自动出安装包」这条路径现在是断的。
-> 需要 Windows 安装包时，请在 Windows 上手动执行 `npm run build:win`（产物在 `dist/`）。
+1. 在 Windows 上 `npm ci`
+2. `npm run build:win`（electron-vite build + electron-builder NSIS x64）
+3. 产物在 `dist/`（`*.exe`、`.blockmap`、`latest.yml`）
 
-以下流程为该工作流的**设计说明**（供将来启用时参考）：
+签名：`package.json` 的 build.win 用环境变量 `WIN_CERTIFICATE_FILE` / `WIN_CERTIFICATE_PASSWORD`
+注入证书，未配置则跳过签名，安装包为未签名（SmartScreen 会提示「未知发布者」）。
 
-- 触发：推送 main / `v*` 标签 / 手动触发（workflow_dispatch）；
-- 流程：checkout → setup-node 20（npm 缓存）→ 设置 electron 镜像加速 → 缓存 electron-builder → `npm ci` → `npm run build:win` → 上传 NSIS 产物（dist/*.exe、blockmap、latest.yml）；
-- 签名：仓库 Secrets 配置 `CSC_LINK`（证书 base64/路径）与 `CSC_KEY_PASSWORD` 即启用 Authenticode 签名，未配置自动跳过；
-- 发布：推送 `v*` 标签自动创建 GitHub Release 并附带安装包。
+发布：手工创建 Release 并上传 `dist/` 下的安装包——没有"推 tag 自动出包"这条路径。
+将来若真要接自动化，先解决 Windows runner 从哪来的问题（GitHub Actions 在本仓是关闭的，
+Gitea 侧没有 Windows runner），再谈 workflow 本身。
 
 ## 项目结构
 
@@ -120,10 +119,11 @@ daq-insight/
 - 集成测试：tests/integration/pipeline.test.ts 以 `tests/fixtures/samples/` 下 **12 个真实形态样本**（standard、semicolon.tsv、tab.txt、gbk_sample、euro_decimal、special_values、no_header、english_header、large、dirty、scan_format、read_query）为基准，逐一断言 检测 → 表头 → 解析 → 统计 与各 .meta.json 期望一致，另含导出往返与清洗阶段；
 - 每个样本附 `.meta.json`（期望编码/分隔符/表头行数/通道数/类型/行数），是解析与识别测试的断言基准；
 - 样本由 generator.ts 确定性生成（重复执行 sha256 一致），便于回归。
+- 端到端：原先打进渲染进程的 `?smoke=1` 自驾式 E2E（`src/hooks/useSmokeTest.ts`，写死开发机绝对路径、会真点导出按钮）已于 2026-10-26 移除；它的等价覆盖是 `tests/integration/pipeline.test.ts` 的六阶段集成测试，UI 层的真点击请用独立的端到端工程，不要再放回生产包。
 
 ## 已知限制
 
-- **打包**：Linux 上交叉打包 Windows 目标需要 wine（rcedit/签名步骤）；正式发布请在 Windows 上执行 `npm run build:win`（工作流定义见 [.gitea/workflows/build-win.yml](.gitea/workflows/build-win.yml)，但该 job 限 GitHub，见上文「持续集成」的现状说明）；未配置签名证书时安装包为未签名（SmartScreen 会提示）；
+- **打包**：Linux 上交叉打包 Windows 目标需要 wine（rcedit/签名步骤）；正式发布请在 Windows 上执行 `npm run build:win`（本仓无 CI，见上文「构建与发布（无 CI）」）；未配置签名证书时安装包为未签名（SmartScreen 会提示）；
 - **签名**：build.win 已配置证书占位（WIN_CERTIFICATE_FILE / WIN_CERTIFICATE_PASSWORD 环境变量注入，CI 用 CSC_LINK / CSC_KEY_PASSWORD），真实证书不入库（见 [docs/icon.md](docs/icon.md)）；
 - **图标**：docs/icon.ico 为正式图标 v1（多尺寸 16-256），如需更换见 [docs/icon.md](docs/icon.md)；
 - **root 环境**：Linux 下以 root 运行 Electron 需 `ELECTRON_DISABLE_SANDBOX=1`；
