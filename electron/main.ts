@@ -121,14 +121,13 @@ function createWindow(): void {
   }
 
   if (RENDERER_URL) {
-    // 开发模式：加载 Vite Dev Server（DAQ_SMOKE=1 时附加 ?smoke=1 供 headless 自检）
-    let smokeUrl = RENDERER_URL
+    // 开发模式：加载 Vite Dev Server（DAQ_SMOKE=1 且给了 DAQ_EXPORT_DIR 时附加 ?exportdir= 覆盖导出目录）
+    let devUrl = RENDERER_URL
     if (process.env['DAQ_SMOKE'] === '1') {
-      smokeUrl = smokeUrl + (smokeUrl.includes('?') ? '&' : '?') + 'smoke=1'
       const exportDir = process.env['DAQ_EXPORT_DIR']
-      if (exportDir) smokeUrl = smokeUrl + '&exportdir=' + encodeURIComponent(exportDir)
+      if (exportDir) devUrl = devUrl + (devUrl.includes('?') ? '&' : '?') + 'exportdir=' + encodeURIComponent(exportDir)
     }
-    void win.loadURL(smokeUrl)
+    void win.loadURL(devUrl)
   } else {
     // 生产模式：加载打包后的静态页面
     void win.loadFile(join(__dirname, '../renderer/index.html'))
