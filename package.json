@@ -38,7 +38,7 @@
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vite": "^5.4.21",
-    "vitest": "^2.1.9"
+    "vitest": "^5.0.5"
   },
   "build": {
     "appId": "com.daqinsight.app",
