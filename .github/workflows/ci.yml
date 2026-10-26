@@ -18,6 +18,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: 探针：故意失败（取证用）
+        run: |
+          echo "::error::探针步骤故意失败"
+          exit 1
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
