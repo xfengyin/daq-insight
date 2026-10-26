@@ -17,8 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - name: install
-        run: npm ci
+        # lockfile 与 package.json 的 peer 范围不一致（vite@8 vs plugin-react@4.7），
+        # npm ci 会 ERESOLVE；用 legacy-peer-deps 按现 lock 安装（2026-10-26 实测红过一次）
+        run: npm ci --legacy-peer-deps
       - name: vitest
-        run: npx vitest run 
+        run: npx vitest run
