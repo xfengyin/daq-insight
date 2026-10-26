@@ -93,11 +93,11 @@ DAQ970A 导出的读数除正常数值外，可能包含以下特殊值：
 - 识别顺序：通道号模式 → 类型关键字 → 单位兜底 → 数值特征；长格式只有单位列时，
   degC 无法区分热电偶(TC)与热电阻(RTD)，默认按 TC，可手动校正。
 
-## 9. Windows 打包、签名与 CI
+## 9. Windows 打包与签名（无 CI）
 
 - 打包命令：`npm run build:win`（electron-vite build + electron-builder NSIS x64，产品名 DAQ Insight，asar 打包）；
 - 应用图标：docs/icon.ico（多尺寸 16-256 正式图标 v1），已接入 build.win.icon（见 docs/icon.md）；
 - 代码签名（可选）：build.win 已配置证书占位，本地用环境变量 WIN_CERTIFICATE_FILE / WIN_CERTIFICATE_PASSWORD 注入；CI 用 CSC_LINK / CSC_KEY_PASSWORD（GitHub Secrets）；未配置证书时自动跳过签名，Windows SmartScreen 会提示"未知发布者"；
-- CI 工作流：.github/workflows/build-win.yml（windows-latest：npm ci → build:win → 上传 NSIS 产物；含 electron 镜像加速与缓存）；推送 v* 标签自动发布 GitHub Release；
-- 本机 Linux 无法产出 NSIS 安装包（交叉打包需 wine），请在 Windows / GitHub Actions 上构建；
+- CI：**本仓库没有 CI**（不存在 .github/workflows/ 也不存在 .gitea/workflows/），推送不会触发任何构建，也没有"推 tag 自动发 Release"；发布请在 Windows 上手工 build 后创建 Release 上传产物；
+- 本机 Linux 无法产出 NSIS 安装包（交叉打包需 wine），请在 Windows 机器上构建；
 - Linux root 环境运行开发模式需 `ELECTRON_DISABLE_SANDBOX=1`。
