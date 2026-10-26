@@ -1,6 +1,8 @@
 name: CI
 
-on: [push]
+# P3：PR 上也要跑，否则「合并不看 CI」永远无从谈起。
+# 注意：加了触发 ≠ 有门禁 —— 门禁由分支保护的 required_status_checks 决定，见同名 PR 描述。
+on: [push, pull_request]
 
 permissions:
   contents: read
