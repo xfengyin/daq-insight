@@ -1,0 +1,54 @@
+version: 2
+
+# 为什么有这个文件
+# ------------
+# 2026-10-27 之前，这个仓没有任何 dependabot 配置，于是走默认：
+#   - 每天检查一次
+#   - **每条安全公告开一个 PR**，即使它们指向的是同一次升级
+# 结果：01:23:28 / 01:23:33 / 01:23:34 三秒内开了三个 PR（#11 tar、#12 builder-util-runtime、
+# #13 app-builder-lib），而三个 PR 的 package.json 改动**逐字相同**
+# （都是 `electron-builder ^24.13.3 -> ^26.18.0`，lock 都是 +1706/-1194）。
+# 合并任意一个就同时修掉 12 条公告里的全部 —— 但邮件是按「开了新 PR / 有新公告」发的，
+# 所以收到的是一串重复报警。
+#
+# 这份配置要解决的是**信噪比**，不是「别升级」：
+#   weekly   每天一次 -> 每周一次，把四封邮件并成一封
+#   groups   同一次升级只开一个 PR
+#   上限     最多 3 个同时打开，避免再次堆成一串
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Shanghai
+    open-pull-requests-limit: 3
+    groups:
+      # minor + patch 合成一条 PR：这类升级本来就是「一起升才自洽」
+      # （#11/#12/#13 就是最好的例子：分开三个 PR，没有一个能解释全貌）。
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      # 安全更新单独一组：它可能跨 major，但同一次公告风暴应该只有一条 PR。
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    commit-message:
+      prefix: chore
+      include: scope
+    # major 升级不进 groups，仍然单独开 PR —— 那种升级需要人看一眼再决定。
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+      timezone: Asia/Shanghai
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: ci
