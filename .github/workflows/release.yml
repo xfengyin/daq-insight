@@ -1,0 +1,109 @@
+# ============================================================================
+# Release —— 三平台桌面安装包（Electron，直传 Release，无 artifact 中转）
+# 2026-10-27 新建。dag-insight 此前只有 CI（vitest），无打包配置与发布流水线。
+# 门禁：版本一致性（tag == package.json version）+ typecheck + vitest。
+# 打包：electron-builder（本机不构建，全部在 runner 内完成）。
+# ============================================================================
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "演练模式：只构建，不建 Release"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: 门禁（版本一致性 + typecheck + test）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: 安装依赖
+        run: npm ci --legacy-peer-deps
+      - name: 版本一致性门（tag == package.json）
+        if: github.ref_type == 'tag'
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$PKG" != "$TAG" ]; then
+            echo "::error::tag $TAG 与 package.json $PKG 不一致"; exit 1
+          fi
+          echo "版本一致：$TAG"
+      - name: typecheck
+        run: npm run typecheck
+      - name: vitest
+        run: npm test
+
+  build:
+    name: 打包 ${{ matrix.platform }}
+    needs: preflight
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # glibc 地板：ubuntu-22.04（2.35）。macos-14 = Apple Silicon 原生。
+          - { os: ubuntu-22.04,  platform: linux-x64,   flag: linux }
+          - { os: windows-2022,  platform: windows-x64, flag: win }
+          - { os: macos-14,      platform: macos-arm64, flag: mac }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: 安装依赖
+        run: npm ci --legacy-peer-deps
+      - name: 前端/主进程构建
+        run: npm run build
+      - name: electron-builder 打包
+        env:
+          # 无签名证书：显式关闭签名自动发现，避免 mac 构建因找不到证书而失败
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npx electron-builder --${{ matrix.flag }} --publish never
+      - name: 列产物 + 生成校验和
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -la dist/ || true
+          shopt -s nullglob
+          files=(dist/*.exe dist/*.dmg dist/*.zip dist/*.AppImage dist/*.deb)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::dist/ 下没有任何安装包产物"; exit 1
+          fi
+          if command -v sha256sum >/dev/null 2>&1; then
+            (cd dist && sha256sum *.exe *.dmg *.zip *.AppImage *.deb > "SHA256SUMS-${{ matrix.platform }}.txt" 2>/dev/null || true)
+          else
+            (cd dist && shasum -a 256 *.dmg *.zip > "SHA256SUMS-${{ matrix.platform }}.txt" 2>/dev/null || true)
+          fi
+      - name: 直传 GitHub Release（tag 推送才发布）
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.zip
+            dist/*.AppImage
+            dist/*.deb
+            dist/SHA256SUMS-*.txt
+          body: |
+            **未签名提示**：本项目无代码签名证书。Windows 首跑遇 SmartScreen 点「更多信息→仍要运行」；macOS 用右键「打开」或 xattr -d com.apple.quarantine 解除隔离。
+            **完整性校验**：下载后核对 Release 附件里的 SHA256SUMS-<平台>.txt。
+          make_latest: "true"

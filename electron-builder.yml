@@ -1,0 +1,28 @@
+# electron-builder 配置（2026-10-27 新增：此仓此前只有 electron-vite 构建，无打包配置）
+appId: com.xfengyin.daq-insight
+productName: DAQ Insight
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+  - package.json
+win:
+  target:
+    - nsis
+  artifactName: daq-insight-${version}-windows-x64.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.utilities
+  artifactName: daq-insight-${version}-macos-${arch}.${ext}
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
+  artifactName: daq-insight-${version}-linux-x64.${ext}
