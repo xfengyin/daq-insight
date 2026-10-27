@@ -21,9 +21,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 而不是 20：vite 8 / vitest 5 / electron 42 的依赖树都要求 node >= 22.12
+          # （实测 `npm ci` 在 node 20 上有 EBADENGINE：@electron/get@5.1.0、electron@42、vitest@5）。
+          node-version: 22
       - name: install
-        run: npm ci --legacy-peer-deps
+        # 不带 --legacy-peer-deps：那是 2026-10 首跑时为绕开 @vitejs/plugin-react@4 与 vite 8
+        # 的真实 peer 冲突加的，把冲突藏了起来。冲突已由 plugin-react 升到 5.x（声明支持 vite ^8）解决，
+        # 这一步现在必须能在**不绕过**的情况下解析整棵依赖树 —— 否则下次同样的冲突会再被藏起来一次。
+        run: npm ci
       - name: 生成测试夹具（large.csv 等程序化样本）
         run: npm run gen:fixtures
       - name: vitest
