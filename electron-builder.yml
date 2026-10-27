@@ -25,4 +25,6 @@ linux:
     - AppImage
     - deb
   category: Utility
+  # .deb 需要 maintainer（否则 electron-builder 报 author email 缺失）
+  maintainer: xfengyin <xfengyin@users.noreply.github.com>
   artifactName: daq-insight-${version}-linux-x64.${ext}
