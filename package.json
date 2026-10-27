@@ -42,36 +42,5 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
-  },
-  "build": {
-    "appId": "com.daqinsight.app",
-    "productName": "DAQ Insight",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "out/**/*",
-      "package.json"
-    ],
-    "win": {
-      "icon": "docs/icon.ico",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "certificateFile": "${env.WIN_CERTIFICATE_FILE}",
-      "certificatePassword": "${env.WIN_CERTIFICATE_PASSWORD}"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "shortcutName": "DAQ Insight"
-    },
-    "asar": true
   }
 }
