@@ -15,11 +15,16 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": ["node"],
-    "baseUrl": ".",
+    // TypeScript 7 的两个破坏性变更，这里一并处理：
+    //   1) TS5102：baseUrl 被移除 —— 原来 baseUrl:"." 提供的「相对仓库根」语义，
+    //      改成在 paths 里显式写 ./ 前缀，效果相同且不再依赖一个已删除的选项。
+    //   2) TS2882：对「副作用式导入非 TS 资源」变严 —— src/main.tsx 的
+    //      import './index.css' 会找不到模块声明，所以 types 里加上 vite/client
+    //      （*.css 等资源模块的环境声明，Vite 项目的标准做法）。
+    "types": ["node", "vite/client"],
     "paths": {
-      "@core/*": ["core/*"],
-      "@/*": ["src/*"]
+      "@core/*": ["./core/*"],
+      "@/*": ["./src/*"]
     }
   },
   "include": [
