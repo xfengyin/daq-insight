@@ -105,6 +105,10 @@ export async function exportExcel(data: StandardizedData, path: string): Promise
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetChannels(data)), '通道定义')
   const s3 = sheetStats(data)
   if (s3) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s3), '统计摘要')
-  XLSX.writeFile(wb, path)
+  // xlsx 0.20 的 ESM 构建不自动绑定 fs：XLSX.writeFile 会走到浏览器的「下载」分支，
+  // 在 Node 里直接报 cannot save file（SheetJS 0.20 起 ESM 需要先 XLSX.set_fs(fs)）。
+  // 这里改成先写进内存再落盘 —— 不依赖任何 fs 绑定，Node 与浏览器行为一致。
+  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer
+  await writeFile(path, buf)
   return { path, bytes: statSync(path).size, rows: timeArray(data).length }
 }
