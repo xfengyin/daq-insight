@@ -42,6 +42,8 @@ jobs:
             echo "::error::tag $TAG 与 package.json $PKG 不一致"; exit 1
           fi
           echo "版本一致：$TAG"
+      - name: 生成测试夹具（large.csv 等程序化样本）
+        run: npm run gen:fixtures
       - name: typecheck
         run: npm run typecheck
       - name: vitest
