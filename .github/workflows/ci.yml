@@ -39,5 +39,13 @@ jobs:
         run: npm ci
       - name: 生成测试夹具（large.csv 等程序化样本）
         run: npm run gen:fixtures
+      # 加这两步的理由（2026-10-27）：原来 CI 只跑 npm ci / gen:fixtures / vitest，
+      # 没有 typecheck，也没有 build。也就是说 tsc --noEmit 挂掉、或 electron-vite 打不出包，
+      # CI 依然是绿的。dependabot 开来的大版本升级（@vitejs/plugin-react 5->6、typescript 5->7）
+      # 恰恰是「测试全过、构建挂掉」的典型 —— 没有这两步，那些 PR 的绿是假的绿。
+      - name: 类型检查（tsc --noEmit）
+        run: npm run typecheck
+      - name: 构建（electron-vite build：main / preload / renderer）
+        run: npm run build
       - name: vitest
         run: npx vitest run
