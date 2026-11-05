@@ -76,21 +76,29 @@ npx electron-builder --dir          # 当前平台解包目录
 npx electron-builder --win --dir    # Windows 目标解包目录（Linux 上需 -c.win.signAndEditExecutable=false 跳过 wine 依赖）
 ```
 
-## 构建与发布（无 CI）
+## 构建与发布（CI + tag 触发）
 
-本仓库**没有 CI**：仓库里不存在 `.github/workflows/` 也不存在 `.gitea/workflows/`，
-推送任何分支或标签都不会触发构建。Windows 安装包只能在 Windows 机器上手工产出：
+**CI** — `.github/workflows/ci.yml`：`push` 到 `main` 与所有 `pull_request` 都会触发
+（Node 22、`npm ci`、生成测试夹具、`vitest`、`typecheck`、`build`）。并发按 `github.ref` 分组，
+同一 ref 的新提交会取消旧 run。
 
-1. 在 Windows 上 `npm ci`
-2. `npm run build:win`（electron-vite build + electron-builder NSIS x64）
-3. 产物在 `dist/`（`*.exe`、`.blockmap`、`latest.yml`）
+**发布** — `.github/workflows/release.yml`：推 `v*` tag，或手动 `workflow_dispatch` 触发。
 
-签名：`package.json` 的 build.win 用环境变量 `WIN_CERTIFICATE_FILE` / `WIN_CERTIFICATE_PASSWORD`
-注入证书，未配置则跳过签名，安装包为未签名（SmartScreen 会提示「未知发布者」）。
+- **门禁 `preflight`**：tag 与 `package.json` 版本一致性 → 生成夹具 → `typecheck` → `vitest`，任一失败即中止发布；
+- **打包 `build`**：三平台矩阵（`linux-x64` on ubuntu-22.04 / `windows-x64` on windows-2022 / `macos-arm64` on macos-14），`electron-builder --publish never` 出安装包，并生成每平台 `SHA256SUMS-<platform>.txt`；
+- **直传 Release**：仅 `push`（即 tag）时由 `softprops/action-gh-release` 上传 `*.exe / *.dmg / *.zip / *.AppImage / *.deb` 与校验和，不经 artifact 中转；
+- **演练**：`workflow_dispatch` 的 `dry_run` 默认 `true`，只构建、不建 Release。
 
-发布：手工创建 Release 并上传 `dist/` 下的安装包——没有"推 tag 自动出包"这条路径。
-将来若真要接自动化，先解决 Windows runner 从哪来的问题（GitHub Actions 在本仓是关闭的，
-Gitea 侧没有 Windows runner），再谈 workflow 本身。
+签名：`package.json` 的 `build.win` 用环境变量 `WIN_CERTIFICATE_FILE` /
+`WIN_CERTIFICATE_PASSWORD` 注入证书；未配置则跳过签名，安装包为未签名
+（Windows 首跑 SmartScreen 提示「未知发布者」，macOS 需右键「打开」或
+`xattr -d com.apple.quarantine`）。Release 附件含 `SHA256SUMS-<平台>.txt` 供完整性校验。
+
+**本机手工打包**（不想等 CI 时）：
+
+1. `npm ci`
+2. `npm run build`（electron-vite build）
+3. `npx electron-builder --win --dir`（或 `--linux` / `--mac`），产物在 `dist/`
 
 ## 项目结构
 
@@ -123,7 +131,7 @@ daq-insight/
 
 ## 已知限制
 
-- **打包**：Linux 上交叉打包 Windows 目标需要 wine（rcedit/签名步骤）；正式发布请在 Windows 上执行 `npm run build:win`（本仓无 CI，见上文「构建与发布（无 CI）」）；未配置签名证书时安装包为未签名（SmartScreen 会提示）；
+- **打包**：Linux 上交叉打包 Windows 目标需要 wine（rcedit/签名步骤）；正式发布请在 Windows 上执行 `npm run build:win`（发布走 tag 触发的 Release 流水线，或本机 `npm run build:win` 后手工上传，见上文「构建与发布」）；未配置签名证书时安装包为未签名（SmartScreen 会提示）；
 - **签名**：build.win 已配置证书占位（WIN_CERTIFICATE_FILE / WIN_CERTIFICATE_PASSWORD 环境变量注入，CI 用 CSC_LINK / CSC_KEY_PASSWORD），真实证书不入库（见 [docs/icon.md](docs/icon.md)）；
 - **图标**：docs/icon.ico 为正式图标 v1（多尺寸 16-256），如需更换见 [docs/icon.md](docs/icon.md)；
 - **root 环境**：Linux 下以 root 运行 Electron 需 `ELECTRON_DISABLE_SANDBOX=1`；
