@@ -40,14 +40,26 @@ DAQ970A / 34970A 数据采集仪导出数据的智能处理桌面工具：自动
 5. **分析与可视化**：查看统计面板与波形图，缩放平移浏览；
 6. **导出**：导出 CSV / Excel 结果。
 
-### 界面截图（占位）
+### 界面截图
 
-> 正式发布前补充以下截图（docs/screenshots/ 目录）：
-> - `01-import.png`：文件导入与格式侦察结果
-> - `02-channels.png`：通道定义与类型校正
-> - `03-preview.png`：数据预览表
-> - `04-analysis.png`：统计面板与波形图
-> - `05-export.png`：导出对话框
+以下为开发机实拍（1280×800 窗口）。为去掉窗口框架与开发机绝对路径，顶部信息栏已裁掉；
+截图里的数据全部来自仓库内样本（如 `tests/fixtures/samples/standard.csv`），不是真实仪器数据。
+
+| 导入与格式侦察 | 通道定义与类型校正 |
+| --- | --- |
+| ![文件导入页：拖拽区与格式侦察结果](docs/screenshots/public/import.png) | ![通道定义表：CH101-CH104，degC 通道带「⚠ 待确认」标签](docs/screenshots/public/channels.png) |
+| 拖拽导入后自动侦察编码、分隔符与表头行数 | 4 通道 75 行样本，解析耗时 37 ms；`degC` 无法自动区分热电偶（TC）与热电阻（RTD），标黄等人工校正 |
+
+| 类型校正 | 统计与导出 |
+| --- | --- |
+| ![类型校正待确认：黄色「⚠ 待确认」标签与下拉校正](docs/screenshots/public/type-check.png) | ![统计面板、数据质量概览与导出对话框](docs/screenshots/public/analysis.png) |
+| 每个通道可下拉改类型与单位，改完立即重算 | 统计面板 + 数据质量概览 + 导出（CSV / Excel / PNG / HTML） |
+
+![20000 行 × 5 通道波形：ECharts dataZoom 缩放平移 + tooltip + 多通道叠加](docs/screenshots/public/waveform.png)
+
+**大数据量**：20000 行 × 5 通道，lttb 降采样后仍可缩放平移并保持 tooltip 精确到点。
+
+> 原始全窗截图（含窗口框架）在 `docs/screenshots/`；`docs/screenshots/public/` 是裁掉顶部信息栏后用于 README 的版本。
 
 ## 开发环境
 
