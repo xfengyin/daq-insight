@@ -22,6 +22,20 @@ export interface TypePattern {
 }
 
 /**
+ * 以「非字母数字」为边界的正则构造器。
+ *
+ * 为什么不用 \b：JS 的 \b 基于 \w（[A-Za-z0-9_]）。单位以非 ASCII 字符开头或结尾时
+ * （Ω / ℃ / °C / μV），\b 根本不成立：
+ *
+ *   /\bΩ\b/.test('Ω')     === false   ← 一列直接叫「Ω」的电阻列此前识别不出来
+ *   /\b℃\b/.test('℃')    === false   ← 一列叫「℃」的温度列同样识别不出来
+ *   /\b°c\b/i.test('°C')  === false
+ */
+function edge(body: string): RegExp {
+  return new RegExp('(?:^|[^a-z0-9])' + body + '(?![a-z0-9])', 'i')
+}
+
+/**
  * 测量类型模式表。
  * 注意顺序：2W/4W 电阻须在通用 OHM 之前；TC/RTD 在温度单位兜底之前。
  */
@@ -34,7 +48,8 @@ export const TYPE_PATTERNS: TypePattern[] = [
   { label: 'ACI', type: MeasurementType.AC_CURRENT, regex: /\baci\b|\baac\b|\bac\s*amp/i },
   { label: 'TC', type: MeasurementType.TEMPERATURE_TC, regex: /\bthermocouple\b|\btc\b|\btype\s*[kjetnrsb]\b/i },
   { label: 'RTD', type: MeasurementType.TEMPERATURE_RTD, regex: /\brtd\b|\bpt\s*-?\s*1000?\b/i },
-  { label: 'OHM', type: MeasurementType.RESISTANCE_2W, regex: /\bohm\b|\bohms\b|\bΩ\b|\bres\b|\bresistance\b/i },
+  // Ω 不能放在 \b...\b 里：\b 基于 \w=[A-Za-z0-9_]，对 Ω 两侧都不成立。
+  { label: 'OHM', type: MeasurementType.RESISTANCE_2W, regex: edge('(?:ohms|ohm|resistance|res|ω)') },
   { label: 'FREQ', type: MeasurementType.FREQUENCY, regex: /\bfreq\b|\bhz\b|\bk?hz\b/i },
   { label: 'PER', type: MeasurementType.PERIOD, regex: /\bperiod\b|\bper\b/i }
 ]
@@ -52,19 +67,6 @@ export interface UnitPattern {
  * 注意组内长单位在前（kv 先于 v、ma 先于 a、ms 先于 s），避免前缀误配。
  * 裸 K 被有意排除（易与热电偶类型 K 混淆），Kelvin 以全称/degK 形式匹配。
  */
-/**
- * 以「非字母数字」为边界的正则构造器。
- *
- * 为什么不用 \b：JS 的 \b 基于 \w（[A-Za-z0-9_]）。单位以非 ASCII 字符开头或结尾时
- * （Ω / ℃ / °C / μV），\b 根本不成立：
- *
- *   /\bΩ\b/.test('Ω')     === false   ← 一列直接叫「Ω」的电阻列此前识别不出来
- *   /\b℃\b/.test('℃')    === false   ← 一列叫「℃」的温度列同样识别不出来
- *   /\b°c\b/i.test('°C')  === false
- */
-function edge(body: string): RegExp {
-  return new RegExp('(?:^|[^a-z0-9])' + body + '(?![a-z0-9])', 'i')
-}
 export const UNIT_PATTERNS: UnitPattern[] = [
   { unit: 'V', regex: edge('(?:kv|mv|μv|uv|v)') },
   { unit: 'A', regex: edge('(?:ka|ma|μa|ua|a)') },
@@ -158,7 +160,9 @@ export const SCAN_INDEX_RE = /^scan\s*#?$/i
  */
 export const CHANNEL_NUMBER_PATTERNS: RegExp[] = [
   /\bslot\s*\d+\s*[-_]\s*ch\s*(\d+)/i,
-  /\b(?:ch|chan|channel|通道)\s*[-_]?\s*(\d+)/i,
+  /\b(?:ch|chan|channel)\s*[-_]?\s*(\d+)/i,
+  // 中文「通道101」：\b 在「通」前面同样不成立，必须单独一条不带 \b 的模式。
+  /通道\s*[-_]?\s*(\d+)/,
   /@\s*(\d+)/,
   /^(\d{2,3})\s*[:：]/,
   /^(\d{2,3})$/
