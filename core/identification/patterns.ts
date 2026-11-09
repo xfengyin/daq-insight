@@ -50,6 +50,8 @@ export interface UnitPattern {
 /**
  * 单位模式表（表头中出现的显式单位标记，按数组顺序先命中者优先）。
  * 注意组内长单位在前（kv 先于 v、ma 先于 a、ms 先于 s），避免前缀误配。
+ * 带前缀的写法（mV / mA / ms / kHz …）**不会**在这里被当成基准单位返回，
+ * 而是由 PREFIXED_UNIT_PATTERNS 先行拦下——否则标签会谎报量级。
  * 裸 K 被有意排除（易与热电偶类型 K 混淆），Kelvin 以全称/degK 形式匹配。
  */
 export const UNIT_PATTERNS: UnitPattern[] = [
@@ -60,6 +62,30 @@ export const UNIT_PATTERNS: UnitPattern[] = [
   { unit: 'Hz', regex: /\b(?:mhz|khz|hz)\b/i },
   { unit: 's', regex: /\b(?:ms|s)\b/i },
   { unit: 'K', regex: /\bkelvin\b|\bdeg\s*k\b/i }
+]
+
+/**
+ * 带**量级前缀**的单位 → 显示写法。
+ *
+ * 上面的 UNIT_PATTERNS 会把 mV / mA / ms / kHz 全部折叠成基准单位（V / A / s / Hz）。
+ * 但本仓**不做数值换算**：文件里写 12.5 mV，读进来还是 12.5，只是标签变成了「V」——
+ * 于是 1000 倍的差距被一个标签盖住，导出表头也会写着 (V)。
+ *
+ * 这里把带前缀的写法单独认出来，原样（规范化大小写）作为单位显示。
+ * 不做换算，只保证"标签与文件一致"。
+ */
+export const PREFIXED_UNIT_PATTERNS: UnitPattern[] = [
+  { unit: 'kV', regex: /\bkv\b/i },
+  { unit: 'mV', regex: /\bmv\b/i },
+  { unit: 'μV', regex: /(?:μ|u)v\b/i },
+  { unit: 'kA', regex: /\bka\b/i },
+  { unit: 'mA', regex: /\bma\b/i },
+  { unit: 'μA', regex: /(?:μ|u)a\b/i },
+  { unit: 'kΩ', regex: /\bkω\b/i },
+  { unit: 'MΩ', regex: /\bmω\b|\bmohm\b/i },
+  { unit: 'kHz', regex: /\bkhz\b/i },
+  { unit: 'MHz', regex: /\bmhz\b/i },
+  { unit: 'ms', regex: /\bms\b/i }
 ]
 
 /** 单个 单位→测量类型 兜底映射 */
