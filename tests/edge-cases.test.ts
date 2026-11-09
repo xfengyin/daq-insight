@@ -352,7 +352,7 @@ describe('detection 边界', () => {
   it('纯数值单列 → 数据行', () => {
     expect(looksLikeDataRow('1.5', ',')).toBe(true)
     expect(detectDelimiter(['1.5\n2.5'])).toBe(',')
-    expect(detectDecimalStyle(['15.01.2024 10:30:00;5,01088'])).toBe(',')
+    expect(detectDecimalStyle(['15.01.2024 10:30:00;5,01088'], ';')).toBe(',')
   })
   it('极端编码：UTF-16LE BOM 文件 detectFile 全链路', async () => {
     const OUT = resolve(__dirname, 'output-edge-detect')
