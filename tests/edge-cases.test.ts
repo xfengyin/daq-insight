@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest'
 import { resolve } from 'node:path'
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { parseValue, parseTimestamp, convertTimestamps } from '../core/parsing/converter'
+import { formatTimestamp } from '../src/shared/units'
 import { parseFile, loadCsvText } from '../core/parsing/parser'
 import { parseHeader } from '../core/parsing/header'
 import { clean } from '../core/cleaning/cleaner'
@@ -368,5 +369,26 @@ describe('detection 边界', () => {
   it('splitLine 引号边界', () => {
     expect(splitLine('"a""b",c', ',')).toEqual(['a"b', 'c'])
     expect(splitLine('a;b;c', ';')).toEqual(['a', 'b', 'c'])
+  })
+})
+
+// ---------- 时区口径：parseTimestamp 与 formatTimestamp 必须一致 ----------
+describe('时间戳一进一出是恒等变换', () => {
+  // 这条测试在 UTC 机器上「改之前也过」，所以它抓不到 CI 上的回归；
+  // 它的价值是钉住不变量：无时区的墙钟时间串，解析后显示必须原样回来。
+  // 真正的证据是本地 +08:00 上跑同一段逻辑：改前显示 18:30，改后 10:30。
+  it('无时区字符串：解析后格式化回原样', () => {
+    const cases: Array<[string, string]> = [
+      ['2024-01-15 10:30:00.123', '2024-01-15 10:30:00.123'],
+      ['2024/01/15 10:30:00', '2024-01-15 10:30:00.000'],
+      ['15.01.2024 10:30:00', '2024-01-15 10:30:00.000']
+    ]
+    for (const [raw, expected] of cases) {
+      expect(formatTimestamp(parseTimestamp(raw))).toBe(expected)
+    }
+  })
+
+  it('直接给毫秒：按 UTC 取值渲染', () => {
+    expect(formatTimestamp(Date.UTC(2024, 0, 15, 10, 30, 0, 123))).toBe('2024-01-15 10:30:00.123')
   })
 })
