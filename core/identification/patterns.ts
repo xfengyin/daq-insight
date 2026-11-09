@@ -52,16 +52,52 @@ export interface UnitPattern {
  * 注意组内长单位在前（kv 先于 v、ma 先于 a、ms 先于 s），避免前缀误配。
  * 裸 K 被有意排除（易与热电偶类型 K 混淆），Kelvin 以全称/degK 形式匹配。
  */
+/**
+ * 以「非字母数字」为边界的正则构造器。
+ *
+ * 为什么不用 \b：JS 的 \b 基于 \w（[A-Za-z0-9_]）。单位以非 ASCII 字符开头或结尾时
+ * （Ω / ℃ / °C / μV），\b 根本不成立：
+ *
+ *   /\bΩ\b/.test('Ω')     === false   ← 一列直接叫「Ω」的电阻列此前识别不出来
+ *   /\b℃\b/.test('℃')    === false   ← 一列叫「℃」的温度列同样识别不出来
+ *   /\b°c\b/i.test('°C')  === false
+ */
+function edge(body: string): RegExp {
+  return new RegExp('(?:^|[^a-z0-9])' + body + '(?![a-z0-9])', 'i')
+}
 export const UNIT_PATTERNS: UnitPattern[] = [
-  { unit: 'V', regex: /\b(?:kv|mv|μv|uv|v)\b/i },
-  { unit: 'A', regex: /\b(?:ka|ma|μa|ua|a)\b/i },
-  { unit: 'degC', regex: /\b(?:degc|°c|℃|°f|celsius)\b/i },
-  { unit: 'Ω', regex: /\b(?:kω|mω|mohm|ohm|ohms|Ω)\b/i },
-  { unit: 'Hz', regex: /\b(?:mhz|khz|hz)\b/i },
-  { unit: 's', regex: /\b(?:ms|s)\b/i },
-  { unit: 'K', regex: /\bkelvin\b|\bdeg\s*k\b/i }
+  { unit: 'V', regex: edge('(?:kv|mv|μv|uv|v)') },
+  { unit: 'A', regex: edge('(?:ka|ma|μa|ua|a)') },
+  { unit: 'degC', regex: edge('(?:degc|°c|℃|°f|celsius)') },
+  { unit: 'Ω', regex: edge('(?:kω|mω|mohm|ohms|ohm|ω)') },
+  { unit: 'Hz', regex: edge('(?:mhz|khz|hz)') },
+  { unit: 's', regex: edge('(?:ms|s)') },
+  { unit: 'K', regex: edge('kelvin|deg\\s*k') }
 ]
 
+/**
+ * 带**量级前缀**的单位 → 显示写法。
+ *
+ * UNIT_PATTERNS 会把 mV / mA / ms / kHz 折叠成基准单位（V / A / s / Hz）。
+ * 但本仓**不做数值换算**：文件里写 12.5 mV，读进来还是 12.5，
+ * 标签却变成「V」——1000 倍的差距被一个标签盖住，导出表头也会跟着写 (V)。
+ *
+ * 这里把带前缀的写法单独认出来，原样（规范化大小写）作为单位显示：
+ * 不换算，只保证「标签与文件一致」。
+ */
+export const PREFIXED_UNIT_PATTERNS: UnitPattern[] = [
+  { unit: 'kV', regex: edge('kv') },
+  { unit: 'mV', regex: edge('mv') },
+  { unit: 'μV', regex: edge('(?:μ|u)v') },
+  { unit: 'kA', regex: edge('ka') },
+  { unit: 'mA', regex: edge('ma') },
+  { unit: 'μA', regex: edge('(?:μ|u)a') },
+  { unit: 'kΩ', regex: edge('kω') },
+  { unit: 'MΩ', regex: edge('(?:mω|mohm)') },
+  { unit: 'kHz', regex: edge('khz') },
+  { unit: 'MHz', regex: edge('mhz') },
+  { unit: 'ms', regex: edge('ms') }
+]
 /** 单个 单位→测量类型 兜底映射 */
 export interface UnitToTypeEntry {
   /** 单位文本（原始形态，如 VDC / degC / HZ） */
@@ -81,13 +117,13 @@ export const UNIT_TO_TYPE: UnitToTypeEntry[] = [
   { unit: 'VAC', type: MeasurementType.AC_VOLTAGE, regex: /\b(?:vac|acv)\b/i },
   { unit: 'ADC', type: MeasurementType.DC_CURRENT, regex: /\b(?:adc|dci)\b/i },
   { unit: 'AAC', type: MeasurementType.AC_CURRENT, regex: /\b(?:aac|aci)\b/i },
-  { unit: 'degC', type: MeasurementType.TEMPERATURE_TC, regex: /\b(?:degc|°c|℃|°f|celsius)\b/i },
-  { unit: 'Hz', type: MeasurementType.FREQUENCY, regex: /\b(?:mhz|khz|hz)\b/i },
-  { unit: 'Ω', type: MeasurementType.RESISTANCE_2W, regex: /\b(?:kω|mω|ohm|ohms|Ω)\b/i },
-  { unit: 'V', type: MeasurementType.DC_VOLTAGE, regex: /\b(?:kv|mv|μv|uv|v)\b/i },
-  { unit: 'A', type: MeasurementType.DC_CURRENT, regex: /\b(?:ka|ma|μa|ua|a)\b/i },
-  { unit: 's', type: MeasurementType.PERIOD, regex: /\b(?:ms|s)\b/i },
-  { unit: 'K', type: MeasurementType.TEMPERATURE_TC, regex: /\bkelvin\b|\bdeg\s*k\b/i }
+  { unit: 'degC', type: MeasurementType.TEMPERATURE_TC, regex: edge('(?:degc|°c|℃|°f|celsius)') },
+  { unit: 'Hz', type: MeasurementType.FREQUENCY, regex: edge('(?:mhz|khz|hz)') },
+  { unit: 'Ω', type: MeasurementType.RESISTANCE_2W, regex: edge('(?:kω|mω|ohms|ohm|ω)') },
+  { unit: 'V', type: MeasurementType.DC_VOLTAGE, regex: edge('(?:kv|mv|μv|uv|v)') },
+  { unit: 'A', type: MeasurementType.DC_CURRENT, regex: edge('(?:ka|ma|μa|ua|a)') },
+  { unit: 's', type: MeasurementType.PERIOD, regex: edge('(?:ms|s)') },
+  { unit: 'K', type: MeasurementType.TEMPERATURE_TC, regex: edge('kelvin|deg\\s*k') }
 ]
 
 /** 测量类型默认工程单位（表头无显式单位时使用） */
