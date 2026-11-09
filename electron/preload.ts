@@ -28,7 +28,6 @@ const api: DaqApi = {
   analyze: (data) => ipcRenderer.invoke(IPC.Analyze, { data }),
   clean: (data, options) => ipcRenderer.invoke(IPC.Clean, { data, options }),
   exportData: (data, format, path) => ipcRenderer.invoke(IPC.Export, { data, format, path }),
-  getPreview: (data, maxRows) => ipcRenderer.invoke(IPC.GetPreview, { data, maxRows }),
   getChartSeries: (data, channelIndexes, maxPoints) =>
     ipcRenderer.invoke(IPC.GetChartSeries, { data, channelIndexes, maxPoints }),
   onMenuEvent: (callback) => {
