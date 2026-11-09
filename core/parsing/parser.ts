@@ -7,6 +7,7 @@ import iconv from 'iconv-lite'
 import Papa from 'papaparse'
 import { MeasurementType, QualityFlag, type ChannelData, type ChannelDef, type ChannelStats, type RawFile, type StandardizedData } from '../models'
 import { convertTimestamps, parseTimestamp, parseValue } from './converter'
+import { extractChannelNumber } from '../identification/identifier'
 
 /** 编码名归一化为 iconv-lite 支持的名称 */
 function iconvName(enc: string): string {
@@ -104,25 +105,32 @@ function buildWideData(path: string, raw: RawFile, dataRows: string[][], channel
 function buildLongData(path: string, raw: RawFile, dataRows: string[][], channels: ChannelDef[]): StandardizedData {
   // 列位置约定（BenchVue 长格式）：0=通道 1=读数 2=单位 3=时间戳
   const CH_COL = 0, VAL_COL = 1, TIME_COL = 3
-  // 第一遍：收集有序唯一时间戳与通道号
+  // 第一遍：收集有序唯一时间戳与**通道标签**
+  //
+  // 这一列不一定是纯数字：BenchVue 的长格式里它是 "CH101" 这样的文本。
+  // 原来直接 `Number(r[CH_COL])`，文本标签会得到 NaN ——
+  // 所有行于是挤进同一个 NaN 桶，输出的「一个通道」里每次只留最后一个值。
   const timeList: number[] = []
   const timeIdx = new Map<number, number>()
-  const chOrder: number[] = []
-  const chSet = new Set<number>()
+  const order: string[] = []
+  const chMeta = new Map<string, { label: string; channelNumber?: number }>()
   for (const r of dataRows) {
     const t = parseTimestampFromCell(r[TIME_COL] ?? '')
     if (!timeIdx.has(t)) { timeIdx.set(t, timeList.length); timeList.push(t) }
-    const chNum = Number(r[CH_COL])
-    if (!chSet.has(chNum)) { chSet.add(chNum); chOrder.push(chNum) }
+    const label = (r[CH_COL] ?? '').trim()
+    if (!chMeta.has(label)) {
+      chMeta.set(label, { label, channelNumber: extractChannelNumber(label) })
+      order.push(label)
+    }
   }
   // 第二遍：为每通道分配对齐数组并填充
-  const buckets = new Map<number, { values: number[]; quality: QualityFlag[]; unit?: string }>()
-  for (const cn of chOrder) buckets.set(cn, { values: new Array(timeList.length).fill(NaN), quality: new Array(timeList.length).fill(QualityFlag.MISSING) })
+  const buckets = new Map<string, { values: number[]; quality: QualityFlag[]; unit?: string }>()
+  for (const key of order) buckets.set(key, { values: new Array(timeList.length).fill(NaN), quality: new Array(timeList.length).fill(QualityFlag.MISSING) })
   for (const r of dataRows) {
     const t = parseTimestampFromCell(r[TIME_COL] ?? '')
     const ti = timeIdx.get(t)!
-    const chNum = Number(r[CH_COL])
-    const b = buckets.get(chNum)
+    const key = (r[CH_COL] ?? '').trim()
+    const b = buckets.get(key)
     if (!b) continue
     const { value, quality } = parseValue(r[VAL_COL] ?? '', raw.decimal)
     b.values[ti] = value
@@ -130,11 +138,21 @@ function buildLongData(path: string, raw: RawFile, dataRows: string[][], channel
     if (!b.unit && r[2]) b.unit = r[2].trim()
   }
   // 组装 ChannelData：def 优先取 T4 提供的元数据（按 channelNumber 匹配），否则生成默认
-  const outChannels: ChannelData[] = chOrder.map((cn, i) => {
-    const b = buckets.get(cn)!
-    const provided = channels.find(c => c.channelNumber === cn)
+  const outChannels: ChannelData[] = order.map((key, i) => {
+    const b = buckets.get(key)!
+    const meta = chMeta.get(key)!
+    const provided = meta.channelNumber !== undefined
+      ? channels.find(c => c.channelNumber === meta.channelNumber)
+      : channels.find(c => c.name === meta.label)
     const def: ChannelDef = provided ?? {
-      index: i, name: 'CH' + cn, channelNumber: cn, measurementType: MeasurementType.UNKNOWN, unit: b.unit, isTimestamp: false, isValid: true
+      index: i,
+      // 文本标签保留原样，不再拼出 "CHNaN"
+      name: meta.channelNumber !== undefined ? 'CH' + meta.channelNumber : meta.label,
+      channelNumber: meta.channelNumber,
+      measurementType: MeasurementType.UNKNOWN,
+      unit: b.unit,
+      isTimestamp: false,
+      isValid: true
     }
     return { def: { ...def, index: i }, values: b.values, timestamps: timeList, quality: b.quality }
   })
