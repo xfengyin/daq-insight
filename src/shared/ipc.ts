@@ -39,8 +39,6 @@ export const IPC = {
   Clean: 'engine:clean',
   /** 导出：engine:export(data, format, path) */
   Export: 'engine:export',
-  /** 数据预览（表格）：engine:getPreview(data, maxRows) */
-  GetPreview: 'engine:getPreview',
   /** 图表序列（降采样）：engine:getChartSeries(data, channelIndexes, maxPoints) */
   GetChartSeries: 'engine:getChartSeries',
   /** 主进程菜单事件推送（webContents.send）：menu:event */
@@ -157,32 +155,6 @@ export interface WriteFileResult {
   bytes: number
 }
 
-/** engine:getPreview 请求 */
-export interface GetPreviewRequest {
-  /** 标准化数据 */
-  data: StandardizedData
-  /** 返回的最大行数（默认 1000） */
-  maxRows?: number
-}
-
-/** 预览表中的一行：时间 + 各通道值（NaN 统一转为 null，便于表格展示为 "--"） */
-export interface PreviewRow {
-  /** 时间戳（Unix 毫秒；无时间轴时为 null） */
-  time: number | null
-  /** 各通道数值（缺省为 null） */
-  values: (number | null)[]
-}
-
-/** engine:getPreview 返回 */
-export interface PreviewData {
-  /** 表头：第一项为时间列名（'时间'），其余为 通道名(单位) */
-  headers: string[]
-  /** 数据行（≤ maxRows 行） */
-  rows: PreviewRow[]
-  /** 数据总行数 */
-  totalRows: number
-}
-
 /** engine:getChartSeries 请求 */
 export interface GetChartSeriesRequest {
   /** 标准化数据 */
@@ -229,8 +201,6 @@ export interface DaqApi {
   clean(data: StandardizedData, options: CleanOptions): Promise<StandardizedData>
   /** 导出 CSV / Excel */
   exportData(data: StandardizedData, format: ExportFormat, path: string): Promise<ExportResult>
-  /** 预览前 N 行 */
-  getPreview(data: StandardizedData, maxRows?: number): Promise<PreviewData>
   /** 图表序列（降采样） */
   getChartSeries(data: StandardizedData, channelIndexes: number[], maxPoints?: number): Promise<ChartSeries[]>
   /** 写文件（图表 PNG/HTML 导出；编码 utf8 或 base64） */
