@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { matchUnit, unitToMeasurementType } from '../../core/identification/identifier';
-import { MeasurementType } from '../../core/models';
+import { matchUnit, unitToMeasurementType } from '../core/identification/identifier';
+import { MeasurementType } from '../core/models';
 
 // 本仓不做数值换算：文件写 12.5 mV，读进来还是 12.5。
 // 所以单位标签必须与文件一致，否则 1000 倍的差距被一个标签盖住。
