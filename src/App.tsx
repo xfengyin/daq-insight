@@ -156,12 +156,35 @@ function App() {
     })
   }, [])
 
-  /** 菜单事件（文件→打开文件 等） */
+  /**
+   * 菜单事件。
+   *
+   * 之前这里只写日志——菜单栏里的「打开文件…（Ctrl+O）」和「重新检测格式（Ctrl+Shift+D）」
+   * 按下去什么都不会发生，只在日志里留一行。菜单是用户会点的东西，不能只是个日志开关。
+   */
   useEffect(() => {
     return window.daqAPI?.onMenuEvent((action) => {
-      logLine('[menu] ' + action)
+      if (action === 'openFile') {
+        void (async () => {
+          try {
+            const r = await window.daqAPI.openFileDialog()
+            if (r.canceled || !r.path) return
+            await handleFile({ path: r.path, name: r.name ?? '', size: r.size ?? 0 })
+          } catch (err) {
+            setError(err instanceof Error ? err.message : String(err))
+          }
+        })()
+        return
+      }
+      if (action === 'redetect') {
+        // 与面板上的「重新检测」一致：重跑 detectFile，再叠加当前的手动校正
+        if (detection) void handleApply(detection.raw)
+        else logLine('[menu] 还没有文件，忽略「重新检测」')
+        return
+      }
+      logLine('[menu] 未接线的动作: ' + action)
     })
-  }, [logLine])
+  }, [detection, handleApply, handleFile, logLine])
 
   /** 当前波形图 PNG dataURL（图表导出用；取 PlotView 缓存的快照，卸载后仍可用） */
   const getChartDataUrl = useCallback((): string | null => chartDataUrl, [chartDataUrl])
