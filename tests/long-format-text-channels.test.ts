@@ -22,7 +22,7 @@ const CSV = [
   'CH102,2.6E+01,degC,2024-01-15 10:30:01.000'
 ].join('\n');
 
-function rawFor(path: string): RawFile {
+function rawFor(path: string, preambleLines: number): RawFile {
   return {
     path,
     format: FileFormat.CSV,
@@ -32,7 +32,7 @@ function rawFor(path: string): RawFile {
     headerRows: 1,
     sampleRows: [],
     layout: 'long',
-    preambleLines: 2
+    preambleLines
   };
 }
 
@@ -40,7 +40,7 @@ describe('长格式：文本通道标签', () => {
   it('CH101 / CH102 各自成为独立通道，值不互相覆盖', async () => {
     const p = join(dir, 'text-channels.csv');
     writeFileSync(p, CSV, 'utf-8');
-    const data = await parseFile(p, rawFor(p), []);
+    const data = await parseFile(p, rawFor(p, 2), []);
 
     expect(data.channels.map((c) => c.def.name)).toEqual(['CH101', 'CH102']);
     expect(data.channels[0].values).toEqual([5, 6]);       // 改前：只有一个名为 CHNaN 的通道
@@ -57,7 +57,7 @@ describe('长格式：文本通道标签', () => {
       '102,2.5E+01,degC,2024-01-15 10:30:00.000',
       '101,6.0E+00,VDC,2024-01-15 10:30:01.000'
     ].join('\n'), 'utf-8');
-    const data = await parseFile(p, rawFor(p), []);
+    const data = await parseFile(p, rawFor(p, 0), []);
     expect(data.channels.map((c) => c.def.channelNumber)).toEqual([101, 102]);
     expect(data.channels[0].values).toEqual([5, 6]);
     expect(data.channels[1].values[0]).toBe(25);
