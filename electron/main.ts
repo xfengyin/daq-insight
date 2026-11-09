@@ -107,6 +107,22 @@ function createWindow(): void {
     console.log('[daq-insight] 渲染页面加载完成')
   })
 
+  // 渲染进程只该渲染本应用自己的页面。
+  // 两个出口都要堵：window.open 新开窗口、以及当前窗口被导航去别处。
+  // 后者尤其要紧——被导航过去之后，那个页面**仍然带着 preload**（daqAPI 全在里面：
+  // 文件对话框、写文件、导出）。路径守卫能限制落盘位置，但没理由让外部页面拿到这些能力。
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    console.log('[security] 已拦截 window.open: ' + url)
+    return { action: 'deny' }
+  })
+  win.webContents.on('will-navigate', (event, url) => {
+    const allowed = RENDERER_URL ? url.startsWith(RENDERER_URL) : url.startsWith('file://')
+    if (!allowed) {
+      event.preventDefault()
+      console.log('[security] 已拦截窗口内跳转: ' + url)
+    }
+  })
+
   // 冒烟验证钩子（仅设置 DAQ_SMOKE_SHOT 时生效）：加载后 6 秒截屏保存
   const smokeShot = process.env['DAQ_SMOKE_SHOT']
   if (smokeShot) {
