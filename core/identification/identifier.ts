@@ -12,6 +12,7 @@ import { MeasurementType, type ChannelDef, type LayoutType } from '../models'
 import {
   CHANNEL_NUMBER_PATTERNS,
   DEFAULT_UNIT_BY_TYPE,
+  PREFIXED_UNIT_PATTERNS,
   SCAN_INDEX_RE,
   TIMESTAMP_RE,
   TYPE_PATTERNS,
@@ -51,10 +52,19 @@ export function matchMeasurementType(text: string): MeasurementType | undefined 
   return undefined
 }
 
-/** 识别显式单位标记，返回规范化单位（V / A / degC / Ω / Hz / s / K） */
+/**
+ * 识别显式单位标记。
+ *
+ * 先认带量级前缀的写法（mV / mA / ms / kHz / kΩ / MΩ …）——它们必须原样返回，
+ * 因为本仓**不做数值换算**：把 "12.5 mV" 标成 "V" 等于把 1000 倍差距藏进标签里，
+ * 导出表头也会跟着错。再退到基准单位（V / A / degC / Ω / Hz / s / K）。
+ */
 export function matchUnit(text: string): string | undefined {
   const t = cleanCell(text)
   if (!t) return undefined
+  for (const p of PREFIXED_UNIT_PATTERNS) {
+    if (p.regex.test(t)) return p.unit
+  }
   for (const p of UNIT_PATTERNS) {
     if (p.regex.test(t)) return p.unit
   }
