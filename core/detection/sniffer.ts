@@ -141,7 +141,7 @@ export function detectHeaderRows(lines: string[], delim: string): number {
  * 探测小数点风格：'.' 或 ','（欧洲逗号小数）。
  * 剔除日期样式（DD.MM.YYYY / 2024-01-15）与时间戳片段干扰。
  */
-export function detectDecimalStyle(lines: string[], delim = ','): '.' | ',' {
+export function detectDecimalStyle(lines: string[], delim: string): '.' | ',' {
   let dot = 0
   let comma = 0
   const isDateToken = (t: string): boolean => /^\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}$/.test(t)
