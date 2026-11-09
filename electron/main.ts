@@ -5,7 +5,9 @@
  * - 所有 IPC handler 用 ipcMain.handle 注册，通道名与类型见 src/shared/ipc.ts（唯一事实来源）
  * - 核心引擎（detection/parsing/analysis/cleaning/export）经 core/ 静态导入，
  *   当前为 T3/T5/T6/T7 签名桩；对应任务落地后无需改动本文件
- * - getPreview / getChartSeries 为主进程内数据变换，已完整实现
+ * - getChartSeries 为主进程内数据变换，已完整实现
+ * - getPreview 已删除：渲染进程本来就持有整份数据，为了取 1000 行把它整份回传主进程纯属浪费；
+ *   预览切片在 DataPreview 里本地完成（两侧各有一份实现，其中主进程那份无人调用）
  */
 import { app, BrowserWindow, Menu, dialog, ipcMain } from 'electron'
 import type { MenuItemConstructorOptions } from 'electron'
@@ -20,11 +22,8 @@ import type {
   DetectFileRequest,
   ExportRequest,
   GetChartSeriesRequest,
-  GetPreviewRequest,
   MenuAction,
   ParseFileRequest,
-  PreviewData,
-  PreviewRow
 } from '../src/shared/ipc'
 import type { StandardizedData } from '../core/models'
 import type { CleanOptions } from '../core/cleaning/cleaner'
@@ -304,28 +303,6 @@ function registerExport(): void {
   })
 }
 
-/** engine:getPreview — 返回前 N 行（时间 + 通道值），NaN 统一转 null 供表格展示 */
-function registerGetPreview(): void {
-  ipcMain.handle(IPC.GetPreview, (_e, req: GetPreviewRequest) => {
-    const data = req.data
-    const channels = data.channels
-    const rowCount = channels.length > 0 ? channels[0].values.length : (data.timeIndex?.length ?? 0)
-    const maxRows = req.maxRows ?? 1000
-    const n = Math.min(maxRows, rowCount)
-    const headers = ['时间', ...channels.map((c) => (c.def.unit ? c.def.name + ' (' + c.def.unit + ')' : c.def.name))]
-    const rows: PreviewRow[] = []
-    for (let i = 0; i < n; i++) {
-      const time = data.timeIndex ? (data.timeIndex[i] ?? null) : (channels[0]?.timestamps?.[i] ?? null)
-      const values = channels.map((c) => {
-        const v = c.values[i]
-        return Number.isFinite(v) ? v : null
-      })
-      rows.push({ time, values })
-    }
-    const result: PreviewData = { headers, rows, totalRows: rowCount }
-    return result
-  })
-}
 
 /** engine:getChartSeries — 降采样图表序列（等距抽样；maxPoints 默认 100000） */
 function registerGetChartSeries(): void {
@@ -370,7 +347,6 @@ function registerIpcHandlers(): void {
   registerAnalyze()
   registerClean()
   registerExport()
-  registerGetPreview()
   registerGetChartSeries()
 }
 
