@@ -25,13 +25,24 @@ export function measurementLabel(t: MeasurementType | undefined | null): string 
   return MEASUREMENT_TYPE_LABELS[t] ?? '未知'
 }
 
-/** 时间戳（Unix 毫秒）→ "YYYY-MM-DD HH:mm:ss.SSS"；空值返回 '--' */
+/**
+ * 时间戳（Unix 毫秒）→ "YYYY-MM-DD HH:mm:ss.SSS"；空值返回 '--'
+ *
+ * 用 UTC 取值，和 core/parsing/converter.ts 的 parseTimestamp 保持同一口径：
+ * 那里对无时区的日期串走 `Date.UTC`（并已有单测钉住
+ * `parseTimestamp('2024-01-15 10:30:00.123') === Date.UTC(...)`）。
+ *
+ * 之前这里用 getFullYear/getHours 等**本地**取值。在 UTC 的 CI 机器上两者恰好相等，
+ * 所以测试一直是绿的；但在 +08:00 的机器上，文件里写的 `10:30:00.123` 会显示成
+ * `18:30:00.123` —— 数据的时刻被整体平移了 8 小时。仪器导出的时间戳是墙钟时间，
+ * 显示必须与文件里一致，一进一出应当是恒等变换。
+ */
 export function formatTimestamp(ms: number | null | undefined): string {
   if (ms == null || !Number.isFinite(ms)) return '--'
   const d = new Date(ms)
   const p = (n: number, w = 2): string => String(n).padStart(w, '0')
-  const base = p(d.getFullYear(), 4) + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds())
-  return base + '.' + p(d.getMilliseconds(), 3)
+  const base = p(d.getUTCFullYear(), 4) + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds())
+  return base + '.' + p(d.getUTCMilliseconds(), 3)
 }
 
 /** 数值格式化：NaN/null → '--'（由调用方决定样式），有限数返回字符串 */
