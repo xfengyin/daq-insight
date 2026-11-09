@@ -48,10 +48,23 @@ function isAscii(buf: Buffer): boolean {
 }
 
 /**
+ * 由 jschardet 的原始结果决定最终编码（纯函数，便于单测）。
+ *
+ * 阈值以下退回 utf-8，但**不虚报置信度**：原来这里返回 Math.max(confidence, 0.2)，
+ * 等于把「我猜的」包装成「检测到 20%」。低置信度就该显示成低置信度。
+ */
+export function decideEncoding(rawName: string, confidence: number): EncodingGuess {
+  const c = typeof confidence === 'number' && Number.isFinite(confidence) ? confidence : 0
+  return { encoding: c < 0.2 ? 'utf-8' : normalize(rawName), confidence: c }
+}
+
+/**
  * 从原始字节探测编码。
  * 1) BOM 嗅探（UTF-8 / UTF-16LE/BE / UTF-32LE/BE）→ 直接返回
  * 2) 纯 ASCII → utf-8（ASCII 是 UTF-8 子集）
  * 3) jschardet 检测，置信度阈值 0.2 以下回退 utf-8
+ *
+ * 判定逻辑见 decideEncoding（抽出来是为了能单测，不必构造真实字节）。
  */
 export function detectEncoding(buf: Buffer): EncodingGuess {
   if (buf.length === 0) return { encoding: 'utf-8', confidence: 1 }
@@ -61,9 +74,7 @@ export function detectEncoding(buf: Buffer): EncodingGuess {
   const res = jschardet.detect(buf)
   const raw = res?.encoding ?? ''
   const confidence = typeof res?.confidence === 'number' ? res.confidence : 0
-  let enc = normalize(raw)
-  if (confidence < 0.2) enc = 'utf-8'
-  return { encoding: enc, confidence: Math.max(confidence, 0.2) }
+  return decideEncoding(raw, confidence)
 }
 
 /** 判断是否为 UTF-16（有 BOM FF FE / FE FF） */

@@ -12,6 +12,9 @@ import { extractChannelNumber } from '../identification/identifier'
 /** 编码名归一化为 iconv-lite 支持的名称 */
 function iconvName(enc: string): string {
   const e = (enc || 'utf-8').toLowerCase()
+  // iconv-lite 不支持 UTF-32。探测层是能认出 UTF-32 BOM 的（encoding.ts），
+  // 但如果这里把 utf-32le 落到默认的 utf-8，整份文件会解成带 NUL 的乱码——比报错更糟。
+  if (e.includes('utf-32') || e.includes('utf32')) return 'utf-32'
   if (e.includes('gb')) return 'GBK'
   if (e.includes('big5')) return 'Big5'
   if (e.includes('latin') || e.includes('8859')) return 'latin1'
@@ -24,6 +27,13 @@ export async function readText(path: string, encoding: string): Promise<string> 
   const buf = await readFile(path)
   const enc = iconvName(encoding)
   if (enc === 'utf-8') return buf.toString('utf-8').replace(/^\uFEFF/, '')
+  if (enc === 'utf-32') {
+    throw new Error(
+      '不支持 UTF-32 编码（文件检测为 ' + encoding + '）。' +
+        '请在仪器/工具里另存为 UTF-8 或 GBK 后重试；' +
+        '强行按 UTF-8 解会把整份文件变成乱码。'
+    )
+  }
   return iconv.decode(buf, enc)
 }
 
