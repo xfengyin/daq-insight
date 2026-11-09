@@ -155,8 +155,9 @@ function createMenu(): void {
     {
       label: '分析',
       submenu: [
-        { label: '重新检测格式', accelerator: 'CmdOrCtrl+Shift+D', click: () => send('redetect') },
-        { label: '应用清洗', accelerator: 'CmdOrCtrl+Shift+C', click: () => send('applyClean') }
+        { label: '重新检测格式', accelerator: 'CmdOrCtrl+Shift+D', click: () => send('redetect') }
+        // 「应用清洗」已经去掉：渲染进程从来没有实现过它，菜单项按下去没有任何反应。
+        // 菜单上不该有装饰性的条目——要么接上，要么不显示。
       ]
     },
     {

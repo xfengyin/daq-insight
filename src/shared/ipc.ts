@@ -240,4 +240,4 @@ export interface DaqApi {
 }
 
 /** 主进程菜单触发的动作（经 webContents.send 推送） */
-export type MenuAction = 'openFile' | 'redetect' | 'applyClean'
+export type MenuAction = 'openFile' | 'redetect'
