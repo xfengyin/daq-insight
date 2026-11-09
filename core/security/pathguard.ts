@@ -34,15 +34,29 @@ function isWinAbsolute(p: string): boolean {
   return /^[A-Za-z]:\//.test(p)
 }
 
-/** 手工折叠 win32 盘符路径的 . / .. 段（path.resolve 在非 win 平台不处理盘符） */
+/**
+ * 手工折叠 win32 盘符路径的 . / .. 段（path.resolve 在非 win 平台不处理盘符）。
+ *
+ * 盘符必须钉在最前面，不能被 `..` 弹掉：把 `C:` 当成普通片段压进栈，
+ * `C:/a/../../out.csv` 会折叠成 `out.csv` —— 一个**绝对路径被静默降级成相对路径**，
+ * 写盘落到了进程 CWD 而不是盘根；同理 `C:/../Windows/System32/x.dll` 会折叠成
+ * `Windows/System32/...`，不再以 `C:/Windows` 开头，敏感目录判定被绕过。
+ * Windows 语义下盘根之上没有父目录，`..` 到根即止。
+ */
 function collapseWinPath(p: string): string {
+  const m = /^([A-Za-z]:)(\/.*)?$/.exec(p)
+  const drive = m ? m[1] : ''
+  const rest = m ? m[2] ?? '/' : p
   const parts: string[] = []
-  for (const seg of p.split('/')) {
+  for (const seg of rest.split('/')) {
     if (seg === '' || seg === '.') continue
-    if (seg === '..') parts.pop()
-    else parts.push(seg)
+    if (seg === '..') {
+      parts.pop()
+      continue
+    }
+    parts.push(seg)
   }
-  return parts.join('/')
+  return drive + '/' + parts.join('/')
 }
 
 /**
@@ -88,12 +102,16 @@ const SENSITIVE_BLOCKS_WIN: ReadonlyArray<string> = [
  * - win32：C:\Windows、C:\Program Files、C:\ProgramData 等
  */
 export function isSensitiveWritePath(input: string, platform: string = process.platform): boolean {
-  const a = normalizeWritePath(input)
-  const home = normalizeWritePath(homedir())
+  // win32 的文件系统大小写不敏感，`c:/windows/system32/x.dll` 和 `C:/Windows` 是同一个地方；
+  // 逐字符比较会把小写写法判成「不敏感」。这里只在 win32 上折叠大小写，
+  // POSIX 路径保持大小写敏感（那是真实语义）。
+  const fold = (x: string): string => (platform === 'win32' ? x.toLowerCase() : x)
+  const a = fold(normalizeWritePath(input))
+  const home = fold(normalizeWritePath(homedir()))
   if (a === home || dirname(a) === home) return true
   const blocks = platform === 'win32' ? SENSITIVE_BLOCKS_WIN : SENSITIVE_BLOCKS
   for (const b of blocks) {
-    const nb = b.replace(/\\/g, '/')
+    const nb = fold(b.replace(/\\/g, '/'))
     if (a === nb || a.startsWith(nb + '/')) return true
   }
   return false
