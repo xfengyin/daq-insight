@@ -71,8 +71,11 @@ export default function StatsPanel({ data, onCleaned, onNotify }: StatsPanelProp
   }
 
   const rows = data.channels[0]?.values.length ?? 0
-  const time = data.timeIndex ?? data.channels[0]?.timestamps ?? []
-  const durationMs = analysis?.durationMs ?? (time.length >= 2 ? time[time.length - 1] - time[0] : 0)
+  // 时间跨度只认 core/analysis 的结果。
+  // 这里原本有个兜底：`time[time.length-1] - time[0]` —— 那是 core 里已经被修掉的写法
+  // （末项减首项，对乱序时间会算出负数：两份日志拼接、长格式按通道分组都会这样）。
+  // 在 UI 里再实现一遍同样的逻辑，等于让修好的 bug 从侧门回来。
+  const durationMs = analysis?.durationMs ?? 0
   const sampleRate = analysis?.sampleRateHz ?? 0
 
   return (
