@@ -41,15 +41,34 @@ function timeArray(data: StandardizedData): number[] {
   return data.timeIndex ?? data.channels[0]?.timestamps ?? []
 }
 
+/**
+ * RFC 4180 转义：含逗号 / 引号 / 换行时整体加引号，内部引号翻倍。
+ *
+ * 之前是直接 `join(',')`。通道名来自仪器文件表头（用户数据），一个 `Volt, ch1`
+ * 就会让表头多出一列，而数据行仍是 N 列 —— 回读时列错位，且不报错。
+ */
+function csvEscape(v: string): string {
+  return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v
+}
+
+/**
+ * 文本单元格防公式注入：Excel / Sheets 会把以 `=` `+` `@` 或制表/回车开头的单元格
+ * 当公式求值。前缀一个单引号是通行做法（OWASP CSV Injection），代价是单元格里能看到那个 `'`。
+ * 只作用于文本（表头 / 缺失值占位），数值单元格不经过这里。
+ */
+function csvText(v: string): string {
+  return csvEscape(/^[=+@\t\r]/.test(v) ? "'" + v : v)
+}
+
 function toCsvText(data: StandardizedData, opts: ExportCsvOptions): string {
   const mode = opts.timestampFormat ?? 'iso'
   const missing = opts.missingPlaceholder ?? ''
   const header = ['Time', ...data.channels.map(c => (c.def.unit ? c.def.name + ' (' + c.def.unit + ')' : c.def.name))]
   const time = timeArray(data)
-  const rows: string[] = [header.join(',')]
+  const rows: string[] = [header.map(csvText).join(',')]
   for (let i = 0; i < time.length; i++) {
-    const cells = [fmtTime(time[i], mode, missing)]
-    for (const ch of data.channels) cells.push(fmt(ch.values[i] ?? NaN, missing))
+    const cells = [csvText(fmtTime(time[i], mode, missing))]
+    for (const ch of data.channels) cells.push(csvText(fmt(ch.values[i] ?? NaN, missing)))
     rows.push(cells.join(','))
   }
   return '\uFEFF' + rows.join('\n')

@@ -60,3 +60,38 @@ describe('core/export 导出模块', () => {
     rmSync(OUT_DIR, { recursive: true, force: true })
   })
 })
+
+// ---------- 回归：CSV 转义与公式注入 ----------
+describe('CSV 单元格转义', () => {
+  it('通道名含逗号 / 引号时，表头与数据行列数仍然一致（改前会多出一列）', async () => {
+    const data = mockData()
+    data.channels[0].def.name = 'Volt, ch1'
+    data.channels[1].def.name = 'He said "hi"'
+    const out = resolve(OUT_DIR, 'tricky.csv')
+    await exportCsv(data, out)
+    const text = readFileSync(out, 'utf-8').replace(/^\uFEFF/, '')
+    const parsed = Papa.parse(text, { skipEmptyLines: true })
+    expect(parsed.data.length).toBe(5) // 1 表头 + 4 数据
+    const header = parsed.data[0] as string[]
+    expect(header.length).toBe(3) // 改前：'Time,Volt, ch1,...' 会被切成 4 段
+    expect(header[1]).toBe('Volt, ch1 (V)')
+    expect(header[2]).toBe('He said "hi" (degC)')
+    for (const row of parsed.data as string[][]) {
+      expect(row.length).toBe(3)
+    }
+    rmSync(OUT_DIR, { recursive: true, force: true })
+  })
+
+  it('以 = / + / @ 开头的文本会被中和，不会在 Excel 里变成公式', async () => {
+    const data = mockData()
+    data.channels[0].def.name = '=1+1'
+    data.channels[1].def.name = '@SUM(A1)'
+    const out = resolve(OUT_DIR, 'formula.csv')
+    await exportCsv(data, out)
+    const text = readFileSync(out, 'utf-8').replace(/^\uFEFF/, '')
+    const header = (Papa.parse(text, { skipEmptyLines: true }).data[0] as string[])
+    expect(header[1]).toBe("'=1+1 (V)")
+    expect(header[2]).toBe("'@SUM(A1) (degC)")
+    rmSync(OUT_DIR, { recursive: true, force: true })
+  })
+})
