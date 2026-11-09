@@ -96,6 +96,29 @@ const SENSITIVE_BLOCKS_WIN: ReadonlyArray<string> = [
 ]
 
 /**
+ * 家目录下**不需要整个 home 都禁、但写进去就等于提权或持久化**的位置（相对 home）。
+ *
+ * 为什么单独一张表：现有规则是「home 根与直接子级拒绝，子目录允许」——这条对
+ * `~/Desktop/导出.csv` 是对的（用户真的要往桌面写），但对下面这些地方是漏的：
+ * 写入 `~/.ssh/authorized_keys` 等于给自己开了后门，写 `~/.config/autostart/*.desktop`
+ * （或 Windows 的「启动」文件夹）等于让程序下次开机自动运行。
+ * 它们都不是「导出数据」，而是「改变后续行为」。
+ */
+const SENSITIVE_HOME_SUBDIRS_POSIX: ReadonlyArray<string> = [
+  '.ssh',
+  '.gnupg',
+  '.config/autostart',
+  '.config/systemd',
+  '.local/share/applications'
+]
+
+/** win32：Windows「启动」文件夹（Roaming 与 ProgramData 两处） */
+const SENSITIVE_HOME_SUBDIRS_WIN: ReadonlyArray<string> = [
+  // 公共的「启动」文件夹在 C:/ProgramData 下，已由 SENSITIVE_BLOCKS_WIN 覆盖
+  'AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup'
+]
+
+/**
  * 敏感路径判定：
  * - 用户主目录根：拒绝 home 本身及直接子级写入（~/x.csv），子目录（~/Desktop/x.csv）允许
  * - POSIX：/etc /usr /bin /sbin /var /boot /proc /sys /dev /lib /lib64 /opt /run 整棵子树
@@ -109,6 +132,11 @@ export function isSensitiveWritePath(input: string, platform: string = process.p
   const a = fold(normalizeWritePath(input))
   const home = fold(normalizeWritePath(homedir()))
   if (a === home || dirname(a) === home) return true
+  const homeSubs = platform === 'win32' ? SENSITIVE_HOME_SUBDIRS_WIN : SENSITIVE_HOME_SUBDIRS_POSIX
+  for (const sub of homeSubs) {
+    const target = fold(home + '/' + sub)
+    if (a === target || a.startsWith(target + '/')) return true
+  }
   const blocks = platform === 'win32' ? SENSITIVE_BLOCKS_WIN : SENSITIVE_BLOCKS
   for (const b of blocks) {
     const nb = fold(b.replace(/\\/g, '/'))
