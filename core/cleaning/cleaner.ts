@@ -35,7 +35,28 @@ function isMissing(values: number[], quality: QualityFlag[], i: number): boolean
   return !Number.isFinite(values[i]) && quality[i] !== QualityFlag.INVALID && quality[i] !== QualityFlag.OVER_RANGE
 }
 
-function fillInterpolate(values: number[], quality: QualityFlag[]): void {
+/**
+ * 插值权重：按**时间**取比例，而不是按下标。
+ *
+ * 只有采样严格等间隔时两者才等价。DAQ 日志常有掉采、暂停、手动触发，
+ * 下标间距 1 可能对应 1ms 也可能对应 100s；按下标插值会把「刚过上一个点」的
+ * 缺失值插到两个点的正中间。时间不可用（缺 timeIndex、时间戳非有限、时间非递增）时
+ * 才退回下标比例，保证旧行为仍是兜底。
+ */
+function interpFraction(time: number[] | undefined, prev: number, i: number, next: number): number {
+  if (
+    time &&
+    Number.isFinite(time[prev]) &&
+    Number.isFinite(time[i]) &&
+    Number.isFinite(time[next]) &&
+    time[next] > time[prev]
+  ) {
+    return (time[i] - time[prev]) / (time[next] - time[prev])
+  }
+  return (i - prev) / (next - prev)
+}
+
+function fillInterpolate(values: number[], quality: QualityFlag[], time?: number[]): void {
   for (let i = 0; i < values.length; i++) {
     if (isMissing(values, quality, i)) {
       let prev = i - 1
@@ -45,7 +66,7 @@ function fillInterpolate(values: number[], quality: QualityFlag[]): void {
       const pv = prev >= 0 ? values[prev] : NaN
       const nv = next < values.length ? values[next] : NaN
       if (Number.isFinite(pv) && Number.isFinite(nv)) {
-        const t = (i - prev) / (next - prev)
+        const t = interpFraction(time, prev, i, next)
         values[i] = pv + (nv - pv) * t
       } else if (Number.isFinite(pv)) values[i] = pv
       else if (Number.isFinite(nv)) values[i] = nv
@@ -110,7 +131,7 @@ export function clean(data: StandardizedData, opts: CleanOptions): StandardizedD
     else if (opts.outlier === 'zscore') markZscoreOutliers(ch.values, ch.quality, opts.outlierThreshold ?? 3.5)
   }
   for (const ch of out.channels) {
-    if (opts.missing === 'interpolate') fillInterpolate(ch.values, ch.quality)
+    if (opts.missing === 'interpolate') fillInterpolate(ch.values, ch.quality, out.timeIndex ?? ch.timestamps)
     else if (opts.missing === 'ffill') fillForward(ch.values, ch.quality)
   }
   if (opts.missing === 'drop') {
