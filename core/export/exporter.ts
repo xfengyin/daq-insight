@@ -51,13 +51,23 @@ function csvEscape(v: string): string {
   return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v
 }
 
+/** 纯数字（含科学计数法）。数值单元格不应当被当成公式。 */
+function isPlainNumber(v: string): boolean {
+  return /^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(v)
+}
+
 /**
- * 文本单元格防公式注入：Excel / Sheets 会把以 `=` `+` `@` 或制表/回车开头的单元格
+ * 单元格防公式注入：Excel / Sheets 会把以 `=` `+` `-` `@` 或制表/回车开头的单元格
  * 当公式求值。前缀一个单引号是通行做法（OWASP CSV Injection），代价是单元格里能看到那个 `'`。
- * 只作用于文本（表头 / 缺失值占位），数值单元格不经过这里。
+ *
+ * `-` 要单独处理：OWASP 的清单里有它，但直接加进字符类会把**负数读数**变成文本
+ * （`-1.5` → `'-1.5`，Excel 里从此不参与计算）。所以只有「以 - 开头且不是合法数字」
+ * 的单元格才加前缀。
  */
 function csvText(v: string): string {
-  return csvEscape(/^[=+@\t\r]/.test(v) ? "'" + v : v)
+  if (/^[=+@\t\r]/.test(v)) return csvEscape("'" + v)
+  if (v.startsWith('-') && !isPlainNumber(v)) return csvEscape("'" + v)
+  return csvEscape(v)
 }
 
 function toCsvText(data: StandardizedData, opts: ExportCsvOptions): string {
@@ -91,7 +101,10 @@ function sheetData(data: StandardizedData): (string | number)[][] {
     const row: (string | number)[] = [Number.isFinite(time[i]) ? new Date(time[i]).toISOString() : '']
     for (const ch of data.channels) {
       const v = ch.values[i] ?? NaN
-      row.push(Number.isFinite(v) ? v : NaN)
+      // 与时间列同一口径：非有限值写空串。
+      // 原来这里塞的是 NaN 本身，交给 SheetJS 去猜——同一份文件里时间列是空串、
+      // 数值列是 NaN，两种「没有值」的表示不一致。
+      row.push(Number.isFinite(v) ? v : '')
     }
     rows.push(row)
   }
