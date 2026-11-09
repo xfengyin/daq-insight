@@ -154,9 +154,12 @@ export function clean(data: StandardizedData, opts: CleanOptions): StandardizedD
   // data.statistics 描述的还是清洗前的数据。最明显的后果：导出的 xlsx 里
   // 「数据」sheet 是清洗后的、「统计摘要」sheet 是清洗前的，同一份文件里两张表互相矛盾，
   // 而且都长得像对的。StatsPanel 会自己再 analyze 一次，所以界面上看不出来。
-  const recomputed: Record<string, ChannelStats> = {}
+  // 键用 def.index：StandardizedData.statistics 的类型是 Record<number, …>，
+  // parser 的 quickStats 也是这么建的。（导出端的 sheetStats 两种键都认，
+  // 所以这里对齐类型，而不是对齐 analyze 的按名键。）
+  const recomputed: Record<number, ChannelStats> = {}
   for (const ch of out.channels) {
-    recomputed[ch.def.name] = computeChannelStats(ch.values, ch.quality)
+    recomputed[ch.def.index] = computeChannelStats(ch.values, ch.quality)
   }
   out.statistics = recomputed
   return out
