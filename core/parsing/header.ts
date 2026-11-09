@@ -71,10 +71,38 @@ export function parseHeader(rows: string[][], headerRows: number, opts?: HeaderP
   return buildWideChannels(headerCells, dataRows, layout)
 }
 
+/**
+ * 让同名通道可区分：`Volt, Volt, Volt` → `Volt`, `Volt (2)`, `Volt (3)`。
+ *
+ * 表头重名在真实文件里很常见（宽表导出常常只写测量功能、不写通道号）。
+ * 重名不会让解析失败，但会让后续一切按名字走的地方失去区分度：
+ * 波形图图例是两行一样的字、统计摘要按名字找通道只会命中第一个、
+ * 用户在通道表里改了其中一个的名字，另一个看起来像是没改。
+ */
+function dedupeName(name: string, used: Set<string>, counters: Map<string, number>): string {
+  if (!used.has(name)) {
+    used.add(name)
+    return name
+  }
+  // 生成的 "Volt (2)" 本身也可能与文件里后出现的字面量重名，
+  // 所以逐个试到不冲突为止，而不是简单地按出现次数拼后缀。
+  let n = counters.get(name) ?? 1
+  let candidate = name + ' (' + (n + 1) + ')'
+  while (used.has(candidate)) {
+    n++
+    candidate = name + ' (' + (n + 1) + ')'
+  }
+  counters.set(name, n + 1)
+  used.add(candidate)
+  return candidate
+}
+
 /** 宽表 / 扫描格式：逐列识别通道；跳过空表头列与扫描序号列 */
 function buildWideChannels(headerCells: string[], dataRows: string[][], layout: LayoutType): ChannelDef[] {
   const sampleCount = Math.min(20, dataRows.length)
   const defs: ChannelDef[] = []
+  const usedNames = new Set<string>()
+  const nameCounters = new Map<string, number>()
   for (let c = 0; c < headerCells.length; c++) {
     const cell = headerCells[c]
     // 扫描格式首列为扫描序号（"Scan #"）：不作为通道
@@ -85,6 +113,7 @@ function buildWideChannels(headerCells: string[], dataRows: string[][], layout: 
     for (let i = 0; i < sampleCount; i++) sampleValues.push(dataRows[i]?.[c] ?? '')
     const def = identifyChannel(cell, sampleValues)
     def.index = c
+    def.name = dedupeName(def.name, usedNames, nameCounters)
     defs.push(def)
   }
   return defs
