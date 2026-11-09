@@ -38,6 +38,30 @@ describe('clean', () => {
     const d = clean(mkData([1, NaN, 3, NaN, 5]), { missing: 'interpolate', outlier: 'none', dedupeTimestamps: false })
     expect(d.channels[0].values).toEqual([1, 2, 3, 4, 5])
   })
+  it('插值按时间加权，而不是按下标（不等间隔采样）', () => {
+    // 四个点：0s / 1s / 2s / 10s，缺失点在下标 2（t=2s）
+    // 距上一点 1s、距下一点 8s ⇒ 权重 1/9 ⇒ 20 + 30/9 ≈ 23.333
+    // 改前按下标算权重 (2-1)/(3-1)=1/2 ⇒ 35
+    const time = [0, 1000, 2000, 10000]
+    const ch = mkChannel('CH101', [10, 20, NaN, 50])
+    ch.timestamps = time
+    const d = clean({ metadata: {}, timeIndex: time, channels: [ch] }, {
+      missing: 'interpolate',
+      outlier: 'none',
+      dedupeTimestamps: false
+    })
+    expect(d.channels[0].values[2]).toBeCloseTo(20 + 30 / 9, 6)
+  })
+
+  it('时间戳不可用时退回下标比例（保持旧行为）', () => {
+    const d = clean({ metadata: {}, timeIndex: undefined, channels: [{ ...mkChannel('CH101', [1, NaN, 3]), timestamps: undefined }] }, {
+      missing: 'interpolate',
+      outlier: 'none',
+      dedupeTimestamps: false
+    })
+    expect(d.channels[0].values).toEqual([1, 2, 3])
+  })
+
   it('前向填充', () => {
     const d = clean(mkData([1, NaN, NaN, 4, NaN]), { missing: 'ffill', outlier: 'none', dedupeTimestamps: false })
     expect(d.channels[0].values).toEqual([1, 1, 1, 4, 4])
