@@ -15,12 +15,19 @@ export interface AnalysisResult {
   sampleRateHz: number
 }
 
-/** 由时间索引中位间隔推算采样率（Hz） */
+/**
+ * 由时间索引中位间隔推算采样率（Hz）。
+ *
+ * 先**排序**再取间隔：文件里的时间戳不保证单调——
+ * 把两次采样的日志拼在一起、或长格式文件按通道分组输出，时间就会往回走。
+ * 不排序时反向间隔全被 g > 0 滤掉，采样率会算成 0 或离谱的数。
+ */
 function estimateSampleRate(time: number[]): number {
-  if (time.length < 2) return 0
+  const sorted = time.filter((t) => Number.isFinite(t)).sort((a, b) => a - b)
+  if (sorted.length < 2) return 0
   const gaps: number[] = []
-  for (let i = 1; i < time.length; i++) {
-    const g = time[i] - time[i - 1]
+  for (let i = 1; i < sorted.length; i++) {
+    const g = sorted[i] - sorted[i - 1]
     if (g > 0) gaps.push(g)
   }
   if (gaps.length === 0) return 0
@@ -36,7 +43,19 @@ export function analyze(data: StandardizedData): AnalysisResult {
     channelStats[ch.def.name] = computeChannelStats(ch.values, ch.quality)
   }
   const time = data.timeIndex ?? data.channels[0]?.timestamps ?? []
-  const durationMs = time.length >= 2 ? time[time.length - 1] - time[0] : 0
+  // 时间跨度取 max-min，而不是「末项-首项」：时间戳不保证单调（见 estimateSampleRate 的注释），
+  // 用末项减首项会算出负数时长。
+  // 用循环而不是 Math.max(...arr)：数据文件动辄十几万行，展开参数会爆栈。
+  let minT = Infinity
+  let maxT = -Infinity
+  let nTime = 0
+  for (const t of time) {
+    if (!Number.isFinite(t)) continue
+    nTime++
+    if (t < minT) minT = t
+    if (t > maxT) maxT = t
+  }
+  const durationMs = nTime >= 2 ? maxT - minT : 0
   const sampleRateHz = estimateSampleRate(time)
   return { channelStats, durationMs, sampleRateHz }
 }
