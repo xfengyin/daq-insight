@@ -94,7 +94,8 @@ export async function detectFile(path: string): Promise<DetectionResult> {
 
   const afterPreamble = sampleLines.slice(preambleLines)
   const headerRows = detectHeaderRows(afterPreamble, delimiter)
-  const decimal = detectDecimalStyle(lines)
+  // 传 delimiter：不做的话，逗号分隔文件里的 "1,100" 会被当成小数逗号（见 sniffer 里的注释）
+  const decimal = detectDecimalStyle(lines, delimiter)
 
   // 布局：表头行取 preamble 之后第一个非空行；无表头时取首行
   const headerLine = afterPreamble[0]
