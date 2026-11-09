@@ -138,3 +138,25 @@ describe('validateWritePath / guardWritePath 综合', () => {
     expect(isSensitiveWritePath(join(HOME, 'a', 'b.csv'))).toBe(false)
   })
 })
+
+// ---------- 回归：盘符被 .. 弹掉 / win32 大小写 ----------
+describe('win32 盘符根不可上溯', () => {
+  it('.. 到盘根即止，绝对路径不被静默降级成相对路径', () => {
+    // 改前：'C:/a/../../out.csv' → 'out.csv'（写盘落到进程 CWD）
+    expect(normalizeWritePath('C:/a/../../out.csv')).toBe('C:/out.csv')
+    expect(normalizeWritePath('C:/../out.csv')).toBe('C:/out.csv')
+    // 正常路径不受影响
+    expect(normalizeWritePath('C:/Users/a/out.csv')).toBe('C:/Users/a/out.csv')
+  })
+
+  it('借 .. 逃出盘根再进敏感目录，仍被判为敏感', () => {
+    // 改前折叠成 'Windows/System32/x.dll'，不以 'C:/Windows' 开头 ⇒ 绕过敏感判定
+    expect(isSensitiveWritePath('C:/../Windows/System32/x.dll', 'win32')).toBe(true)
+  })
+
+  it('win32 大小写不敏感：小写写法同样算敏感', () => {
+    // 改前逐字符比较，'c:/windows/...' 不匹配 'C:/Windows'
+    expect(isSensitiveWritePath('c:/windows/System32/x.dll', 'win32')).toBe(true)
+    expect(isSensitiveWritePath('C:/WINDOWS/System32/x.dll', 'win32')).toBe(true)
+  })
+})
