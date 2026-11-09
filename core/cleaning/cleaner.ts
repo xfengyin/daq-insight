@@ -2,7 +2,8 @@
  * core/cleaning/cleaner.ts — 可配置数据清洗（T6 完整实现）
  * 缺失值插值/填充/删除、异常值标记（IQR/Z-score）、重复时间戳去重。
  */
-import { QualityFlag, type StandardizedData } from '../models'
+import { QualityFlag, type ChannelStats, type StandardizedData } from '../models'
+import { computeChannelStats } from '../analysis/statistics'
 
 /** 清洗选项 */
 export interface CleanOptions {
@@ -147,5 +148,19 @@ export function clean(data: StandardizedData, opts: CleanOptions): StandardizedD
       if (ch.timestamps) ch.timestamps = keep.map(i => ch.timestamps![i])
     }
   }
+  // 统计必须按**清洗后**的数据重算。
+  //
+  // 原来这里直接把输入的 statistics 克隆过来（cloneData），于是清洗之后
+  // data.statistics 描述的还是清洗前的数据。最明显的后果：导出的 xlsx 里
+  // 「数据」sheet 是清洗后的、「统计摘要」sheet 是清洗前的，同一份文件里两张表互相矛盾，
+  // 而且都长得像对的。StatsPanel 会自己再 analyze 一次，所以界面上看不出来。
+  // 键用 def.index：StandardizedData.statistics 的类型是 Record<number, …>，
+  // parser 的 quickStats 也是这么建的。（导出端的 sheetStats 两种键都认，
+  // 所以这里对齐类型，而不是对齐 analyze 的按名键。）
+  const recomputed: Record<number, ChannelStats> = {}
+  for (const ch of out.channels) {
+    recomputed[ch.def.index] = computeChannelStats(ch.values, ch.quality)
+  }
+  out.statistics = recomputed
   return out
 }
