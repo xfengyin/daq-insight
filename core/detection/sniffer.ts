@@ -141,19 +141,25 @@ export function detectHeaderRows(lines: string[], delim: string): number {
  * 探测小数点风格：'.' 或 ','（欧洲逗号小数）。
  * 剔除日期样式（DD.MM.YYYY / 2024-01-15）与时间戳片段干扰。
  */
-export function detectDecimalStyle(lines: string[]): '.' | ',' {
+export function detectDecimalStyle(lines: string[], delim = ','): '.' | ',' {
   let dot = 0
   let comma = 0
   const isDateToken = (t: string): boolean => /^\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}$/.test(t)
   for (const line of lines.slice(0, 80)) {
-    const tokens = line.match(/[0-9][0-9.,]*/g) ?? []
-    for (const tk of tokens) {
-      if (isDateToken(tk)) continue
-      // 数值 token 中最后一个分隔符后跟 1-6 位数字 → 小数分隔符
-      const m = tk.match(/([.,])(\d{1,6})$/)
-      if (m) {
-        if (m[1] === '.') dot++
-        else comma++
+    // 必须**先按分隔符切开**再找小数符号。
+    // 直接扫整行时，逗号分隔的文件里 "1,100"（两个整数列）会被当成「小数逗号」，
+    // 于是判定成欧洲格式；接下来 parseValue 会把这个逗号换成小数点 ——
+    // 1 和 100 变成 1.100，读数整体缩小 1000 倍，而且不报错。
+    for (const field of splitLine(line, delim)) {
+      const tokens = field.match(/[0-9][0-9.,]*/g) ?? []
+      for (const tk of tokens) {
+        if (isDateToken(tk)) continue
+        // 数值 token 中最后一个分隔符后跟 1-6 位数字 → 小数分隔符
+        const m = tk.match(/([.,])(\d{1,6})$/)
+        if (m) {
+          if (m[1] === '.') dot++
+          else comma++
+        }
       }
     }
   }
