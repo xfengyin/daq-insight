@@ -66,6 +66,26 @@ describe('isSensitiveWritePath 敏感目录', () => {
     expect(isSensitiveWritePath(HOME)).toBe(true)
     expect(isSensitiveWritePath(join(HOME, 'Desktop', 'out.csv'))).toBe(false)
   })
+  it('家目录下的提权/持久化位置要拒绝', () => {
+    // 写 ~/.ssh/authorized_keys 等于给自己开后门；写 ~/.config/autostart/*.desktop
+    // 等于让程序下次开机自动跑。它们都不是「导出数据」。
+    expect(isSensitiveWritePath(join(HOME, '.ssh', 'authorized_keys'))).toBe(true)
+    expect(isSensitiveWritePath(join(HOME, '.ssh', 'id_ed25519'))).toBe(true)
+    expect(isSensitiveWritePath(join(HOME, '.config', 'autostart', 'evil.desktop'))).toBe(true)
+    expect(isSensitiveWritePath(join(HOME, '.local', 'share', 'applications', 'evil.desktop'))).toBe(true)
+    // 但不该误伤正常导出位置
+    expect(isSensitiveWritePath(join(HOME, 'Desktop', 'out.csv'))).toBe(false)
+    expect(isSensitiveWritePath(join(HOME, 'Documents', 'out.csv'))).toBe(false)
+    expect(isSensitiveWritePath(join(HOME, '.config', 'daq', 'out.csv'))).toBe(false)
+  })
+
+  it('win32 的「启动」文件夹要拒绝（platform 注入）', () => {
+    const startup = join(HOME, 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup', 'evil.bat')
+    expect(isSensitiveWritePath(startup, 'win32')).toBe(true)
+    // 同一份路径在 POSIX 语义下不是敏感目录（不同平台的规则不同，别互相串）
+    expect(isSensitiveWritePath(startup, 'linux')).toBe(false)
+  })
+
   it('win32 敏感目录（platform 注入）', () => {
     expect(isSensitiveWritePath('C:/Windows/system32/evil.exe', 'win32')).toBe(true)
     expect(isSensitiveWritePath('C:/Program Files/x.exe', 'win32')).toBe(true)
