@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { matchUnit, unitToMeasurementType } from '../core/identification/identifier';
+import {
+  matchUnit,
+  matchMeasurementType,
+  unitToMeasurementType
+} from '../core/identification/identifier';
 import { MeasurementType } from '../core/models';
 
 // 本仓不做数值换算：文件写 12.5 mV，读进来还是 12.5。
@@ -31,6 +35,17 @@ describe('matchUnit 保留量级前缀', () => {
     expect(matchUnit('s')).toBe('s');
     expect(matchUnit('degC')).toBe('degC');
     expect(matchUnit('ohm')).toBe('Ω');
+  });
+
+  it('裸符号也要认得出来（\b 对非 ASCII 不成立）', () => {
+    // 这条是这次顺带发现的同类 bug：一列直接叫「Ω」或「℃」时，
+    // 原来的 \\b...\\b 一个都匹配不上 —— 电阻列、温度列因此识别不出来。
+    expect(matchUnit('Ω')).toBe('Ω');
+    expect(matchUnit('℃')).toBe('degC');
+    expect(matchUnit('°C')).toBe('degC');
+    expect(matchMeasurementType('Ω')).toBe(MeasurementType.RESISTANCE_2W);
+    expect(matchMeasurementType('℃')).toBe(MeasurementType.TEMPERATURE_TC);
+    expect(unitToMeasurementType('Ω')).toBe(MeasurementType.RESISTANCE_2W);
   });
 
   it('前缀只改变标签，不改变测量类型', () => {
