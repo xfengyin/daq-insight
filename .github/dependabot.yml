@@ -43,6 +43,13 @@ updates:
       prefix: chore
       include: scope
     # major 升级不进 groups，仍然单独开 PR —— 那种升级需要人看一眼再决定。
+    ignore:
+      # jschardet 3.1.4 → 4.x 会把 GBK 样本误判成 utf-8（CI 实测：
+      # detectEncoding / pipeline 全样本矩阵三个测试都从 'gbk' 翻成 'utf-8'）。
+      # 这是真实能力退化，不是测试写死版本号。在 encoding 检测逻辑按 4.x 语义改造之前，
+      # 让 dependabot 不要再每周重开这个 PR。见已关闭的 #30。
+      - dependency-name: "jschardet"
+        versions: [">=4"]
 
   - package-ecosystem: github-actions
     directory: "/"
